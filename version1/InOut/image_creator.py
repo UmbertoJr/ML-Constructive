@@ -1,0 +1,212 @@
+import cv2 as cv
+
+import torch
+import numpy as np
+from torch import tensor
+
+from InOut.output_agent import OutputHandler
+from InOut.candidateSets import CandidatesAgent
+from InOut.utils import transformation, pixel_in_image, normalize_image, plot_cv, distance_mat
+
+intensity = 255
+to_plot = False
+
+
+class ImageTrainDataCreator:
+    """
+    class in charge to create the input images and output.
+    The output is True if the input draws an optimal edge.
+    """
+
+    def __init__(self, settings, cases=1):
+        self.settings = settings
+        self.create_image = ImageCreator(settings)
+        self.input_channels = 2
+        self.cases = cases
+        self.type_output = torch.long
+        if to_plot:
+            self.create_in_out = output_visual_checker(settings, self.create_in_out)
+
+    def create_data_for_all(self, data):
+        number_cities, pos, tour = data
+        num_images = number_cities * self.cases
+        return self.create_data(num_images, pos, number_cities, tour)
+
+    def create_data(self, num_images, pos, num_vertices, optimal_tour):
+        settings = self.settings
+
+        # creation empty data collector
+        input_images, output_data = self.create_empty_collector(num_images, settings)
+
+        # tools initialization
+        dist_matrix, pos, max_global, candidates_agent, output_handler = self.tools_init(pos, optimal_tour)
+
+        # selects the list of promising edges
+        dict_LP = {i: np.argsort(dist_matrix[i])[1: self.cases + 1] for i in range(pos.shape[0])}
+        iter_ = 0
+        for city in range(num_vertices):
+            for k in range(self.cases):
+                # select the vertex in the CL that is in position k
+                city2 = dict_LP[city][int(k)]
+
+                # select the candidate set for the current edge l=[city1, city2]
+                neig = candidates_agent.create_candidate(city, city2)
+
+                # the fun creates input and output for current city
+                image_, out_ = self.create_in_out(city, city2, neig, pos, output_handler)
+
+                output_data[iter_] = out_
+                input_images[iter_] = image_
+                iter_ += 1
+
+        input_images, output_data = self.to_torch(input_images, output_data)
+        return input_images, output_data
+
+    def to_torch(self, input_images, output_data):
+        input_images = tensor(input_images, dtype=torch.float)
+        input_images = input_images.permute(0, 3, 1, 2)
+        output_ = tensor(output_data, dtype=self.type_output)
+        return input_images, output_
+
+    def create_in_out(self, city, city2, neig, pos, output_handler):
+        # return outputs (angles or neig index) for the current city (go and come)
+        out_ = output_handler.create_output(city, city2)
+        # create image
+        image_ = self.create_image(city, city2, pos, neig)
+        return image_, out_
+
+    def create_empty_collector(self, num_images, settings):
+        input_images = np.zeros((num_images, settings.num_pixels, settings.num_pixels, self.input_channels), np.uint8)
+        output_ = np.zeros((num_images), np.int)
+        return input_images, output_
+
+    def tools_init(self, pos, optimal_tour):
+        # distance matrix creation, problem centering and Pixel Handler Agent
+        settings = self.settings
+        dist_matrix = distance_mat(pos)
+        pos -= np.mean(pos, axis=0)
+        max_global = np.max(np.linalg.norm(pos, axis=1))
+
+        # preprocessing for candidates
+        candidates_agent = CandidatesAgent(settings, dist_matrix)
+
+        # init the output handler
+        output_handler = OutputHandler(settings, optimal_tour)
+        return dist_matrix, pos, max_global, candidates_agent, output_handler
+
+
+class ImageCreator:
+    def __init__(self, settings):
+        self.settings = settings
+        self.num_pixel = settings.num_pixels
+        self.raggio_nodo = settings.ray_dot
+        self.spess_edge = settings.thickness_edge
+        self.list_op_input = [self.build_local]
+
+    def __call__(self, city, city2, pos, neig):
+        im = []
+        for op in self.list_op_input:
+            im.append(op(city, city2, pos, neig))
+        im = np.concatenate(im, axis=2)
+        return normalize_image(im)
+
+    def build_local(self, city, city2, pos, neig, *args):
+        pos_go, max_value = transformation(pos, city, city2, neig)
+        pixel_man = pixel_in_image(max_value=max_value,
+                                   num_pixel=self.num_pixel, raggio=self.raggio_nodo)
+        viola = (intensity, 0)
+        green = (0, intensity)
+        im = np.zeros((self.num_pixel, self.num_pixel, 2), np.uint8)
+
+        # color the considered edge in the image
+        c_x, c_y = pixel_man.pixel_pos(vec=pos_go[0])
+        cv.circle(im, (c_x, c_y), self.raggio_nodo, green,
+                  thickness=-1, lineType=cv.LINE_AA)
+
+        t_x, t_y = pixel_man.pixel_pos(vec=pos_go[1])
+        cv.circle(im, (t_x, t_y), self.raggio_nodo, green,
+                  thickness=-1, lineType=cv.LINE_AA)
+
+        im = cv.line(im, (c_x, c_y), (t_x, t_y), green, self.spess_edge,
+                     lineType=cv.LINE_AA)
+
+        for j in range(pos_go.shape[0]):
+            c_x, c_y = pixel_man.pixel_pos(vec=pos_go[j])
+            cv.circle(im, (c_x, c_y), self.raggio_nodo, viola,
+                      thickness=-1, lineType=cv.LINE_AA)
+
+        return im
+
+
+class ImageTestCreator(ImageCreator):
+    def __init__(self, settings, pos):
+        super(ImageTestCreator, self).__init__(settings)
+        self.dist_matrix = distance_mat(pos)
+        pos -= np.mean(pos, axis=0)
+        max_global = np.max(np.linalg.norm(pos, axis=1))
+        self.pixel_global = pixel_in_image(max_value=max_global,
+                                           num_pixel=settings.num_pixels,
+                                           raggio=settings.ray_dot)
+        self.pos = pos
+
+        # preprocessing for candidates
+        self.candidates_agent = CandidatesAgent(settings, self.dist_matrix)
+
+    def get_image(self, city1, city2):
+        neig = self.candidates_agent.create_candidate(city1, city2)
+        pos_go, max_value = transformation(self.pos, city1, city2, neig)
+        pixel_man = pixel_in_image(max_value=max_value,
+                                   num_pixel=self.num_pixel, raggio=self.raggio_nodo)
+
+        distance_one = pixel_man.pixel_distance()
+        too_close = True if self.dist_matrix[city1, city2] < 3 * distance_one else False
+
+        viola = (intensity, 0)
+        green = (0, intensity)
+        im = np.zeros((self.num_pixel, self.num_pixel, 2), np.uint8)
+
+        # color the considered edge in the image
+        c_x, c_y = pixel_man.pixel_pos(vec=pos_go[0])
+        cv.circle(im, (c_x, c_y), self.raggio_nodo, green,
+                  thickness=-1, lineType=cv.LINE_AA)
+
+        t_x, t_y = pixel_man.pixel_pos(vec=pos_go[1])
+        cv.circle(im, (t_x, t_y), self.raggio_nodo, green,
+                  thickness=-1, lineType=cv.LINE_AA)
+
+        im = cv.line(im, (c_x, c_y), (t_x, t_y), green, self.spess_edge,
+                     lineType=cv.LINE_AA)
+
+        for j in range(pos_go.shape[0]):
+            c_x, c_y = pixel_man.pixel_pos(vec=pos_go[j])
+            cv.circle(im, (c_x, c_y), self.raggio_nodo, viola,
+                      thickness=-1, lineType=cv.LINE_AA)
+
+        return im, too_close
+
+
+class output_visual_checker:
+    def __init__(self, settings, func):
+        self.settings = settings
+        self.num_pixel = settings.num_pixels
+        self.raggio_nodo = settings.ray_dot
+        self.spess_edge = settings.thickness_edge
+        self.func = func
+
+    def __call__(self, city, next_city, neig, pos, output_handler):
+        self.pos_new, self.max_value = transformation(pos, city, next_city, neig)
+        # self.pos_new = self.pos_new[self.settings.steps:]
+        self.pixel_man = pixel_in_image(max_value=self.max_value,
+                                        num_pixel=self.num_pixel, raggio=self.raggio_nodo)
+        print(f"main vertex {city}")
+        print(f"second extreme {next_city}")
+        print(f"neig {neig}")
+        image, out = self.func(city, next_city, neig, pos, output_handler)
+
+        list_images_to_plot = [image[:, :, 0], image[:, :, 1],
+                               np.stack([image[:, :, 0], image[:, :, 1], image[:, :, 0]], axis=2)]
+
+        print(f"Is the edge optimal?:  {out}")
+        plot_cv(list_images_to_plot, city)
+        print()
+        return image, out
