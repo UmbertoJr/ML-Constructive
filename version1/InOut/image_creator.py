@@ -198,7 +198,6 @@ class ImageTestCreator(ImageCreator):
         distance_one = pixel_man.pixel_distance()
         too_close = True if self.dist_matrix[city1, city2] < 3 * distance_one else False
 
-
         red = (intensity, 0, 0)
         green = (0, intensity, 0)
         blue = (0, 0, intensity)
@@ -231,7 +230,20 @@ class ImageTestCreator(ImageCreator):
                           thickness=-1, lineType=cv.LINE_AA)
                 im = cv.line(im, (c_x, c_y), (h_x, h_y), blue, self.spess_edge,
                              lineType=cv.LINE_AA)
-        im = np.concatenate([im], axis=2)
+
+        for i, j in enumerate(p_go):
+            for h in p_sol[j]:
+                if h in neig:
+                    c_x, c_y = pixel_man.pixel_pos(vec=pos_go[i])
+                    cv.circle(im, (c_x, c_y), self.raggio_nodo, blue,
+                              thickness=-1, lineType=cv.LINE_AA)
+                    ind = np.argwhere(p_go == h)[0][0]
+                    h_x, h_y = pixel_man.pixel_pos(vec=pos_go[ind])
+                    cv.circle(im, (h_x, h_y), self.raggio_nodo, blue,
+                              thickness=-1, lineType=cv.LINE_AA)
+                    im = cv.line(im, (c_x, c_y), (h_x, h_y), blue, self.spess_edge,
+                                 lineType=cv.LINE_AA)
+
         return normalize_image(im), too_close
 
 
@@ -250,7 +262,7 @@ class output_visual_checker:
                                         num_pixel=self.num_pixel, raggio=self.raggio_nodo)
         print(f"main vertex {city}")
         print(f"second extreme {next_city}")
-        print(f"distance : {np.sqrt(np.sum((pos[city] - pos[next_city])**2))}")
+        print(f"distance : {np.sqrt(np.sum((pos[city] - pos[next_city]) ** 2))}")
         print(f"neig {neig}")
         image, out = self.func(city, next_city, neig, pos, output_handler, p_sol)
 
