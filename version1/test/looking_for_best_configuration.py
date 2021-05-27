@@ -32,8 +32,8 @@ def train_the_best_configuration(settings):
 
     model = resnet_for_the_tsp(settings)
     model = model.to(device)
-    # model.apply(model.weight_init)
-    model.load_state_dict(torch.load(f'./data/net_weights/CL_2/best_model_RL_v8_PLR.pth'))
+    model.apply(model.weight_init)
+    # model.load_state_dict(torch.load(f'./data/net_weights/CL_2/best_model_RL_v8_PLR.pth'))
 
     # loss function
     criterion = torch.nn.CrossEntropyLoss()

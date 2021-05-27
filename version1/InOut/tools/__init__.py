@@ -157,6 +157,7 @@ class SampleCreator:
 def plot_histogram(data, case):
     df = pd.DataFrame(data)
     ax = sbn.barplot(x='Position in the CL', y=case, hue='Method', data=df, order=['1', '2', '3', '4', '5', '>5'])
+    with_hue(ax, df)
     change_width(ax, 0.35)
     plt.savefig(f'./data/images/{case}Methods.png')
     plt.show()

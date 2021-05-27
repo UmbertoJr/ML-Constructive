@@ -13,10 +13,9 @@ class Constructive:
             "FI": self.fi,
             "ML-G": self.select_method('our'),
             "first": self.select_method('first'),
-            # "second": self.select_method('second'),
-            # "yes": self.select_method('yes'),
-            # "no": self.select_method('no'),
-            # "empirical": self.select_method('empirical'),
+            "second": self.select_method('second'),
+            "yes": self.select_method('yes'),
+            "empirical": self.select_method('empirical'),
             "ML-SC": self.select_method('optimal')
         }
         if 'empirical' in name_solver:
@@ -39,7 +38,5 @@ class Constructive:
         def our_method(prob):
             solver = PreSelection(self.admin, prob=prob, method=method)
             start = time()
-            pre_sol = solver.solve()
-            return ClarkeWright.cw(self.admin.dist_matrix, solution=pre_sol, inside=solver.edges_inserted), \
-                   time() - start
+            return solver.solve(), time() - start
         return our_method

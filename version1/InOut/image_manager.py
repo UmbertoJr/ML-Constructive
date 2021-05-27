@@ -115,15 +115,19 @@ class DatasetHandler(Dataset):
             self.load_new_file()
             for j in range(self.num_instances_x_file):
                 number_cities = self.file[f'//seed_{key}'][f'num_cities'][...]
+                pos = self.file[f'//seed_{key}'][f'pos'][...]
                 if self.eval:
                     if number_cities[0] < 500:
-                        number_cities = [0]
+                        # number_cities = [0]
+                        continue
 
-                tot_images += number_cities[0]
+                tot_images += self.image_creator.get_num_of_images(number_cities[0], pos)
+                # tot_images += number_cities[0]
                 key += 1
 
-        len_tot_images = tot_images * self.cases
-        return int(len_tot_images)
+        # len_tot_images = tot_images * self.cases
+        # return int(len_tot_images)
+        return tot_images
 
     def load_new_file(self):
         self.file.close()
@@ -140,7 +144,7 @@ class DatasetHandler(Dataset):
             pos = self.file[f'//seed_{actual_key}'][f'pos'][...]
             tour = self.file[f'//seed_{actual_key}'][f'optimal_tour'][...]
             number_cities = number_cities[0]
-            new_images = number_cities * self.cases
+            new_images = self.image_creator.get_num_of_images(number_cities, pos)
             return (number_cities, pos, tour), new_images, actual_key
 
 

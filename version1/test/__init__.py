@@ -23,7 +23,8 @@ def test_on_eval(settings):
 
 def test_on_constr(settings):
     generator_instance = Read_TSP_Files()
-    constructive_algs = ['MF', 'CW', 'FI', 'ML-G']
+    # constructive_algs = ['MF', 'CW', 'FI', 'ML-G', 'first', 'ML-SC']
+    constructive_algs = ['ML-SC']
     data = {}
     all_df = []
     metrics = ["probability"]
@@ -32,7 +33,7 @@ def test_on_constr(settings):
 
     # for prob in [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, .08, 0.85, 0.9, 0.95, 1]:
     # for prob in np.linspace(0.94, 1., 7):
-    prob = 0.88
+    prob = 0.99
     for problem_data in tqdm(generator_instance.instances_generator(), total=len(generator_instance.files)):
         admin = OutcomeAdmin(problem_data, constructive_algs, settings)
         if to_plot: admin.plot_solution(admin.optimal_tour, "ottimo")
@@ -56,7 +57,7 @@ def test_on_constr(settings):
     # big_df = pd.concat(all_df, ignore_index=True)
     # big_df.to_csv('./data/test/all_results_random.csv')
     # big_df.to_csv('./data/test/selected_results_rete2.csv')
-    df_result.to_csv('./data/test/reconstruction/results_rete_prob08.csv')
+    df_result.to_csv('./data/test/reconstruction/results_final.csv')
 
 
 def create_solvers_names(constructive_algs, improvement):
@@ -77,56 +78,76 @@ def create_list_to_save(solvers, admin):
 
 
 def test_metrics_on_TSPLIB(settings):
-    constructive_algs = ['first', 'ML-G', 'ML-SC']
+    # constructive_algs = ['first', 'ML-G', 'ML-SC']
+    constructive_algs = ['ML-G']
     data_p = {'Method': [], 'Position in the CL': [], 'True Positive Rate': []}
     data_n = {'Method': [], 'Position in the CL': [], 'False Positive Rate': []}
-    prob = 0.88
-    data = {}
-    metrics = ["probability"]
-    for solv in constructive_algs:
-        metrics.extend([f"gap {solv}", f"acc {solv}", f"time {solv}"])
-    generator_instance = Read_TSP_Files()
+    # for prob in [0.66, 0.67, 0.68, 0.69, 0.695, 0.71, 0.72, 0.73, 0.74]:
+                 # 0.55, 0.6, 0.65, 0.7, 0.75, .8, 0.85, 0.9, 0.95, 1]:
+    # for prob in [0.71, 0.72, 0.73, 0.74, 0.75, 0.76, 0.78, 0.79, 0.81, 0.82, 0.83, 0.84]:
+    for prob in [0.85, 0.86, 0.87, 0.88, 0.89, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99]:
+        metrics = []
+        data = {}
+        for solv in constructive_algs:
+            metrics.extend([f"gap {solv}", f"acc {solv}", f"time {solv}"])
+        generator_instance = Read_TSP_Files()
+        for problem_data in tqdm(generator_instance.instances_generator(), total=len(generator_instance.files)):
+            admin = OutcomeAdmin(problem_data, constructive_algs, settings)
+            # sc = SampleCreator(admin.dist_matrix, admin.optimal_tour)
+            data[admin.name] = []
+            for constructive in constructive_algs:
+                greedy_heuristic = Constructive(constructive, admin)
 
-    for problem_data in tqdm(generator_instance.instances_generator(), total=len(generator_instance.files)):
-        admin = OutcomeAdmin(problem_data, constructive_algs, settings)
-        sc = SampleCreator(admin.dist_matrix, admin.optimal_tour)
-        data[admin.name] = [prob]
-        for constructive in constructive_algs:
-            greedy_heuristic = Constructive(constructive, admin)
+                # create simple solution
+                sol_no_pre, time_to_solve = greedy_heuristic.solve(prob)
+                admin.save(sol_no_pre, method=constructive, time=time_to_solve)
 
-            # create simple solution
-            sol_no_pre, time_to_solve = greedy_heuristic.solve(prob)
-            admin.save(sol_no_pre, method=constructive, time=time_to_solve)
+                # data_p, data_n = sc.save_new_data(data_p, data_n, admin.sols[constructive], constructive)
 
-            data_p, data_n = sc.save_new_data(data_p, data_n, admin.sols[constructive], constructive)
+            list_to_save = create_list_to_save(constructive_algs, admin)
+            data[admin.name].extend(list_to_save)
 
-        list_to_save = create_list_to_save(constructive_algs, admin)
-        data[admin.name].extend(list_to_save)
+        df_result = pd.DataFrame.from_dict(data, orient='index', columns=metrics)
+        print(f" prob = {prob}")
+        print(df_result.mean())
+        print('\n\n')
+        # break
+        df_result.loc['mean'] = df_result.mean()
+        df_result.loc['std'] = df_result.std()
+        df_result.to_csv(F'./data/test/reconstruction/prom_results_ML-G_prob_{prob}.csv')
+    # df_positive = pd.DataFrame(data_p)
+    # df_positive.to_csv('./data/test/reconstruction/positive_cases_ML-G.csv')
+    # print(df_positive.groupby(['Method', 'Position in the CL']).mean())
+    # df_negative = pd.DataFrame(data_n)
+    # df_negative.to_csv('./data/test/reconstruction/negative_cases_ML-G.csv')
+    # print(df_negative.groupby(['Method', 'Position in the CL']).mean())
 
-    plot_histogram(data_p, case='True Positive Rate')
-    plot_histogram(data_n, case='False Positive Rate')
-
-    df_result = pd.DataFrame.from_dict(data, orient='index', columns=metrics)
-    df_result.loc['mean'] = df_result.mean()
-    df_result.loc['std'] = df_result.std()
+    # df_result = pd.DataFrame.from_dict(data, orient='index', columns=metrics)
+    # df_result.loc['mean'] = df_result.mean()
+    # df_result.loc['std'] = df_result.std()
     # all_df.append(df_result)
 
     # big_df = pd.concat(all_df, ignore_index=True)
     # big_df.to_csv('./data/test/all_results_random.csv')
     # big_df.to_csv('./data/test/selected_results_rete2.csv')
-    df_result.to_csv('./data/test/reconstruction/results_ML-G.csv')
+    # df_result.to_csv('./data/test/reconstruction/results_ML-G.csv')
+    # df_result.to_csv('./data/test/reconstruction/various_ML-G.csv')
+
+    # plot_histogram(data_n, case='False Positive Rate')
+    # plot_histogram(data_p, case='True Positive Rate')
 
 
 def average_on_different_checks(settings):
     generator_instance = Read_TSP_Files()
     # constructive_algs = ['first', 'second', 'yes',
     #                      'no', 'empirical', 'our', 'optimal']
-    constructive_algs = ["our",
-                         "empirical1", "empirical2", "empirical3", "empirical4", "empirical5",
-                         "empirical6", "empirical7", "empirical8", "empirical9", "empirical10",
-                         "empirical11", "empirical12", "empirical13", "empirical14", "empirical15",
-                         "empirical16", "empirical17", "empirical18", "empirical19", "empirical20",
-                         ]
+    # constructive_algs = ["first", "second", "yes",
+    #                      "empirical1", "empirical2", "empirical3", "empirical4", "empirical5",
+    #                      "empirical6", "empirical7", "empirical8", "empirical9", "empirical10",
+    #                      "empirical11", "empirical12", "empirical13", "empirical14", "empirical15",
+    #                      "empirical16", "empirical17", "empirical18", "empirical19", "empirical20",
+    #                      ]
+    constructive_algs = ["yes"]
     data = {}
     all_df = []
     metrics = ["probability"]
@@ -154,8 +175,8 @@ def average_on_different_checks(settings):
     # big_df = pd.concat(all_df, ignore_index=True)
     # big_df.to_csv('./data/test/all_results_random.csv')
     # big_df.to_csv('./data/test/selected_results_rete2.csv')
-    df_result.to_csv('./data/test/reconstruction/test_diversi_rico_policies.csv')
-
+    # df_result.to_csv('./data/test/reconstruction/test_diversi_rico_policies.csv')
+    df_result.to_csv('./data/test/reconstruction/yes.csv')
 
 def check_distributions_across_different_heuristics(settings) -> None:
     constructive_algs = ['MF', 'CW']

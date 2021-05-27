@@ -182,7 +182,7 @@ class ResNet(nn.Module):
 
 
 def resnet_for_the_tsp(settings):
-    in_channels = 2
+    in_channels = 3
     n_classes = 2
     return ResNet(in_channels, n_classes, block=ResNetBasicBlock)
 

@@ -1,6 +1,6 @@
+import copy
 import torch
 import numpy as np
-from InOut.tools import to_generator
 from test.utils import possible_plots
 from model.network import resnet_for_the_tsp
 from InOut.utils import plot_cv, to_torch
@@ -8,9 +8,6 @@ from InOut.image_creator import ImageTestCreator
 from test.classic_constructive import EdgeInsertion
 
 verbose = False
-# model_check = ['optimal', 'random', 'network',
-#                'first always', 'second always',
-#                'yes', 'no'][2]
 
 
 class PreSelection(EdgeInsertion):
@@ -21,161 +18,145 @@ class PreSelection(EdgeInsertion):
         self.dist_matrix = admin.dist_matrix
         self.pos = admin.pos
         self.num_cit = self.dist_matrix.shape[0]
-        self.solution_shrinked = {str(i): [] for i in range(self.num_cit)}
-        self.visits = np.zeros(self.num_cit)
+        self.k = self.settings.cases_in_L_P
+        self.firstPhaseSolution = {str(i): [] for i in range(self.num_cit)}
+        self.visits = {i: 0 for i in range(self.num_cit)}
         self.prob_to_check = prob
         self.image_creator = ImageTestCreator(self.settings, self.pos)
         self.net = resnet_for_the_tsp(admin.settings)
         self.net.to('cpu')
-        self.net.load_state_dict(torch.load(f'./data/net_weights/CL_2/best_model.pth',
+        # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_2/best_model_RL_v2_PLR_new.pth',
+        #                                     map_location='cpu'))
+        self.net.load_state_dict(torch.load(f'./data/net_weights/CL_2/best_model_RL_v8_PLR.pth',
                                             map_location='cpu'))
 
         if method == "optimal":
-            self.check = self.check_EVENT_optimal
+            self.ML_check = self.check_EVENT_optimal
         elif "empirical" in method:
-            self.check = self.check_EVENT_random
+            self.ML_check = self.check_EVENT_random
         elif method == "our":
-            self.check = self.check_EVENT_with_net
+            self.ML_check = self.check_EVENT_with_net
         elif method == "yes":
-            self.check = self.check_yes
+            self.ML_check = self.check_yes
         elif method == "no":
-            self.check = self.check_no
+            self.ML_check = self.check_no
         elif method == "first":
-            self.check = self.check_first
+            self.ML_check = self.check_first
         elif method == "second":
-            self.check = self.check_second
+            self.ML_check = self.check_second
 
-        self.generator = self.mf_generator(self.dist_matrix)
         self.neighborhood = self.create_neigs()
+        self.LP = self.create_LP()
         self.edges_inserted = 0
 
-    def mf_generator(self, dist_matrix):
-        mat = np.triu(dist_matrix, 1)
-        mat[mat == 0] = 100000000
-        self.mat = mat
-        return to_generator(np.argsort(mat.flatten()), self.num_cit)
-
-    @property
-    def condition_to_stop(self):
-        # print(f"current visited: {np.sum(self.visits >= 2)}, just one visit {np.sum(self.visits == 1)},\n"
-        #       f"total cities: {self.num_cit}")
-        return np.sum(self.visits >= 2) < self.num_cit
+    def create_LP(self):
+        LP_v = {}
+        for node in range(self.num_cit):
+            for h in self.neighborhood[node]:
+                if (node, h) not in LP_v.keys() and (h, node) not in LP_v.keys():
+                    LP_v[(node, h)] = self.dist_matrix[node, h]
+        return [k for k, v in sorted(LP_v.items(), key=lambda item: item[1])]
 
     def create_neigs(self):
         neigs = {}
         for i in range(self.num_cit):
-            a, b = np.argsort(self.dist_matrix[i])[1:3]
+            a, b = np.argsort(self.dist_matrix[i])[1: self.k + 1]
             neigs[i] = [a, b]
         return neigs
 
-    def condition_to_enter_sol(self, node1, node2):
-        if node2 in self.neighborhood[node1] or node1 in self.neighborhood[node2]:
-            self.add_visit(node1, node2)
-            if self.check_if_available(node1, node2, self.solution_shrinked):
-                if self.check_if_not_close([node1, node2], self.solution_shrinked):
-                    return True
+    def condition_to_enter_sol(self, node1, node2, dict_sol):
+        if self.check_if_available(node1, node2, dict_sol):
+            if self.innerLoopTracker([node1, node2], dict_sol):
+                return True
         return False
 
-    def get_the_nn(self, cur, prev):
-        array_ = np.copy(self.dist_matrix[cur])
-        array_[cur] = 100000000
-        array_[prev] = 100000000
-        node_r = np.argmin(array_)
-        # if verbose: print("segment considered", prev, cur, node_r)
-        return node_r
-
-    def select_neigs_for_selected_edge(self, node1, node2):
-        case = 1
-        neig1 = self.get_the_nn(node1, node2)
-        neig2 = self.get_the_nn(node2, node1)
-        if neig1 != neig2:
-            case = 2
-        # if verbose:print("numero vicini", case, (neig1, node1), (neig2, node2),
-        #                  'probs', self.dist_matrix[node1, neig1], self.dist_matrix[node2, neig2])
-        first = np.argmin([self.dist_matrix[node1, neig1], self.dist_matrix[node2, neig2]])
-        return case, [[[(node2, node1), (node1, neig1)], [(node1, node2), (node2, neig2)]][first],
-                      [[(node2, node1), (node1, neig1)], [(node1, node2), (node2, neig2)]][first - 1]]
-
-    def evento(self, new_edge, old_edge):
-        # print(new_edge)
-        a_i, x_i = list(new_edge)
-        prev_x = old_edge[1]
-        caso = False
-        event = self.check(a_i, x_i, prev_x)
-        if event:
-            self.add_to_sol(a_i, x_i)
-            caso = True
-            # if verbose:
-            #     print("aggiunto edge", a_i, x_i)
-        return caso
-
     def solve(self):
-        plotter = possible_plots(self.pos, self.prob_to_check)
-        while self.condition_to_stop:
-            x_i, y_i = next(self.generator, (None, None))
+        # plotter = possible_plots(self.pos, self.prob_to_check)
+        self.firstPhase()
+        solution = self.secondPhase()
+        # plotter.plot_current_sol(self.pos, solution)
+        # plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
+        # input()
+        return solution
 
-            if x_i == None:
-                print("generator exausted")
-                assert False, 'non dovrebbe mai entrare qui'
+    def secondPhase(self):
+        secondPhaseSolution = copy.deepcopy(self.firstPhaseSolution)
+        hub = self.find_hub(dist_matrix=self.dist_matrix)
+        free_cities = self.get_free_nodes(secondPhaseSolution)
+        LD = self.create_LD(free_cities, hub)
+        for i, j in LD:
+            if i not in secondPhaseSolution[str(j)] and j not in secondPhaseSolution[str(i)]:
+                if self.condition_to_enter_sol(i, j, secondPhaseSolution):
+                    secondPhaseSolution = self.add_to_sol(i, j, secondPhaseSolution)
+                    if len(secondPhaseSolution[str(i)]) == 2:
+                        free_cities.remove(i)
+                    if len(secondPhaseSolution[str(j)]) == 2:
+                        free_cities.remove(j)
+                    # print(i, j, free_cities, secondPhaseSolution[str(i)], secondPhaseSolution[str(j)], hub)
+                    # plotter.plot_new_selection(secondPhaseSolution, i, j)
+                    if len(free_cities) == 2:
+                        # print(self.get_free_nodes(secondPhaseSolution))
+                        # plotter.plot_new_selection(secondPhaseSolution, i, j)
+                        # print(n1, n2)
+                        solution = self.create_solution(free_cities, secondPhaseSolution, self.num_cit)
+                        # print(solution)
+                        return solution
 
-            if self.condition_to_enter_sol(x_i, y_i):
-                # plotter.plot_new_selection(self.solution_shrinked, x_i, y_i)
-                situation, cases = self.select_neigs_for_selected_edge(x_i, y_i)
+    def create_LD(self, free_cities, hub):
+        LD_v = {}
+        for node_i in free_cities:
+            for node_j in free_cities:
+                if node_i != node_j and (node_i, node_j) not in LD_v.keys() and (node_j, node_i) not in LD_v.keys():
+                    LD_v[(node_i, node_j)] = self.dist_matrix[node_i, hub] + self.dist_matrix[hub, node_j] \
+                                             - self.dist_matrix[node_i, node_j]
+        return [k for k, v in sorted(LD_v.items(), key=lambda item: - item[1])]
 
+    def firstPhase(self):
+        # plotter = possible_plots(self.pos, self.prob_to_check)
+        for i, j in self.LP:
+            if self.condition_to_enter_sol(i, j, self.firstPhaseSolution):
+                self.add_visit(i, j)
+                if self.ML_check(i, j):
+                    self.firstPhaseSolution = self.add_to_sol(i, j, self.firstPhaseSolution)
+                    self.edges_inserted += 1
+                # plotter.plot_new_selection(self.firstPhaseSolution, i, j)
+                # input()
                 # if verbose:
-                #     print("ci sono vicini:", situation)
-                #     print("casistica:", cases[0])
-                #     print("casistica:", cases[1])
-                #     possible_plots.plot_possible_previous_steps(initial_edge, situation, cases)
-
-                for case in range(situation):
-                    new_step, prev_step = cases[case]
-                    positive = self.evento(new_step, prev_step)
-                    # plotter.case_step(self.solution_shrinked, new_step, prev_step, positive)
-                    if positive:
-                        break
-
-        # if verbose:
         #     print(self.solution_shrinked)
         #     print(sum([len(self.solution_shrinked[key])==2 for key in self.solution_shrinked.keys()])/self.num_cit)
-        # plotter.plot_situation(self.solution_shrinked)
+        # plotter.plot_situation(self.firstPhaseSolution)
         # plotter.create_video(self.prob_to_check)
         # input()
-        return self.solution_shrinked
 
-    def check_EVENT_optimal(self, a_i, x_i, *args):
-        ind_cur = np.argwhere(self.optimal_tour == x_i)
-        return True if a_i in [self.optimal_tour[ind_cur - 1], self.optimal_tour[ind_cur + 1 - self.num_cit]] else False
+    def check_EVENT_optimal(self, i, j):
+        ind_cur = np.argwhere(self.optimal_tour == j)
+        return True if i in [self.optimal_tour[ind_cur - 1], self.optimal_tour[ind_cur + 1 - self.num_cit]] else False
 
-    def check_EVENT_random(self, a_i, x_i, prev_x, *args):
+    def check_EVENT_random(self, i, j):
         ret_bool = False
-        if self.dist_matrix[a_i, x_i] < self.dist_matrix[x_i, prev_x]:
-            # ret_bool = np.random.choice([True, False], p=[0.67591, 1 - 0.67591])
+
+        if i == self.neighborhood[j][0] or j == self.neighborhood[i][0]:
             ret_bool = np.random.choice([True, False], p=[0.8854, 1 - 0.8854])
-        if self.dist_matrix[a_i, x_i] < self.dist_matrix[x_i, prev_x]:
-            # ret_bool = np.random.choice([True, False], p=[0.17152, 1 - 0.17152])
+        elif i == self.neighborhood[j][1] or j == self.neighborhood[i][1]:
             ret_bool = np.random.choice([True, False], p=[0.5109, 1 - 0.5109])
         return ret_bool
 
-    def check_EVENT_with_net(self, a_i, x_i, prev_x):
-        image, too_close = self.image_creator.get_image(a_i, x_i)
+    def check_EVENT_with_net(self, i, j):
+        image, too_close = self.image_creator.get_image(i, j)
         image = np.stack([image, image], axis=0)
         if too_close:
             return True
         image_ = to_torch(image).to('cpu')
-        self.net.train(mode=False)
+        self.net.eval()
         ret = self.net(image_)
         ret = ret.detach().cpu().numpy()[0]
-        if verbose:
-            print("probabilita rete", ret)
-            # plot_cv(image)
-        return True if ret[0] > self.prob_to_check else False
+        return True if ret[1] > self.prob_to_check else False
 
-    def check_first(self, a_i, x_i, prev_x):
-        return True if self.dist_matrix[a_i, x_i] < self.dist_matrix[x_i, prev_x] else False
+    def check_first(self, i, j):
+        return True if i == self.neighborhood[j][0] or j == self.neighborhood[i][0] else False
 
-    def check_second(self, a_i, x_i, prev_x):
-        return True if self.dist_matrix[a_i, x_i] > self.dist_matrix[x_i, prev_x] else False
+    def check_second(self, i, j):
+        return True if i == self.neighborhood[j][1] or j == self.neighborhood[i][1] else False
 
     @staticmethod
     def check_yes(*args):
@@ -185,10 +166,10 @@ class PreSelection(EdgeInsertion):
     def check_no(*args):
         return False
 
-    def add_to_sol(self, node1, node2):
-        self.solution_shrinked[str(node1)].append(node2)
-        self.solution_shrinked[str(node2)].append(node1)
-        self.edges_inserted += 1
+    def add_to_sol(self, node1, node2, dict_sol):
+        dict_sol[str(node1)].append(node2)
+        dict_sol[str(node2)].append(node1)
+        return dict_sol
 
     def add_visit(self, node1, node2):
         self.visits[node1] += 1

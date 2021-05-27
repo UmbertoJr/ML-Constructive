@@ -5,7 +5,7 @@ from instances_generator import create_instances, create_statistical_study_data
 from model import train_the_net
 from model.network import check_network
 from test.looking_for_best_configuration import show_results, train_the_best_configuration
-from test import test_on_constr
+from test import test_on_constr, test_metrics_on_TSPLIB, average_on_different_checks
 
 
 class Settings:
@@ -36,8 +36,9 @@ operations = {
     # "test": test_on_eval,
     # "test TSPLIB files": test_TSPLIB_generator,
     "test reconstruction": test_on_constr,
+    "test metrics on TSPLIB": test_metrics_on_TSPLIB,
     # "check distributions": check_distributions_across_different_heuristics,
-    # "test variations": average_on_different_checks,
+    "test variations": average_on_different_checks,
     "": None
 }
 
@@ -50,6 +51,7 @@ if __name__ == '__main__':
     # settings.operation = 'show results train'
     settings.operation = "get the best network parameters after first train"
     # settings.operation = "test reconstruction"
-
+    # settings.operation = 'test metrics on TSPLIB'
+    # settings.operation = 'test variations'
     print_sett(settings)
     operations[settings.operation](settings)

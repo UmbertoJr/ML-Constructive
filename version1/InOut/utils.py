@@ -34,7 +34,7 @@ def transformation(pos, city1, city2, neigs):
     # pos_selected_go = pos[points_go] - pos[centro]
     pos_selected_go = pos[points_go] - centro_img
     max_value = np.max(np.linalg.norm(pos_selected_go, axis=1))
-    return pos_selected_go, max_value
+    return pos_selected_go, max_value, points_go
 
 
 def sort_the_list_of_files(path):
@@ -73,15 +73,23 @@ def plot_cv(im_list, city):
         img = cv.resize(el, (96 * 4, 96 * 4), interpolation=cv.INTER_NEAREST)
         # img = el
         # print(img.shape)
-        if len(img.shape) > 2:
-            if img.shape[2] == 2:
-                img = np.stack([img[:, :, 0], img[:, :, 1], img[:, :, 0]], axis=2)
-                cv.imwrite(f'./data/images/example/{names[ind]}_{np.random.uniform(0, 1)}.png', img)
-            elif img.shape[2] == 3:
-                cv.imwrite(f'./data/images/example/example{city}_{np.random.uniform(0, 1)}.png', img)
+        # if len(img.shape) > 2:
+        #     if img.shape[2] == 2:
+        #         img = np.stack([img[:, :, 0], img[:, :, 1], img[:, :, 0]], axis=2)
+        #         cv.imwrite(f'./data/images/example/{names[ind]}_{np.random.uniform(0, 1)}.png', img)
+        #     elif img.shape[2] == 3:
+        #         cv.imwrite(f'./data/images/example/example{city}_{np.random.uniform(0, 1)}.png', img)
         # print(img.shape)
         # print()
         cv.imshow(names[ind], img)
+    cv.waitKey(0)
+    cv.destroyAllWindows()
+
+
+def plot_single_cv(image):
+    el = (image * 255).astype(np.uint8)
+    img = cv.resize(el, (96 * 4, 96 * 4), interpolation=cv.INTER_NEAREST)
+    cv.imshow('image', img)
     cv.waitKey(0)
     cv.destroyAllWindows()
 

@@ -82,7 +82,7 @@ class possible_plots:
         plt.plot(self.pos[nodes, 0], self.pos[nodes, 1], marker='o', color=mcd.CSS4_COLORS[c], linestyle=style)
 
     def plot_new_selection(self, pre_solution, x, y):
-        self.plot_situation(pre_solution)
+        self.plot_situation(pre_solution, title=f"added {x} {y}")
         self.plot_edge(x, y)
         plt.title(f"selection nodes {x, y}")
         plt.savefig(f"./data/test/images/prob_{self.prob}/step{self.step}.png")
@@ -93,30 +93,33 @@ class possible_plots:
         plt.title("final preselection")
         plt.savefig(f"./data/test/images/prob_{self.prob}/step{self.step}.png")
 
-    def plot_situation(self, solution_dict):
+    def plot_situation(self, solution_dict, title=''):
         pieces = []
         no_touch = [int(k_) for k_ in solution_dict.keys() if len(solution_dict[k_]) == 1]
         touch = [int(k_) for k_ in solution_dict.keys() if len(solution_dict[k_]) == 2]
         for key in no_touch:
             if sum([key in piece for piece in pieces]) == 0 and len(solution_dict[str(key)]) < 2:
                 new_piece = possible_plots.create_piece(solution_dict, int(key))
-                print(new_piece)
+                # print(new_piece)
                 pieces.append(new_piece)
 
-        plt.figure(figsize=(8, 8))
+        # plt.figure(figsize=(8, 8))
         # ordered_points = self.pos[no_touch]
         # plt.scatter(ordered_points[:, 0], ordered_points[:, 1], marker='o', c=mcd.CSS4_COLORS['cyan'])
-        for t in touch:
-            print(t)
-            print(solution_dict[str(t)])
+        # for t in touch:
+        #     print(t)
+        #     print(solution_dict[str(t)])
         plt.scatter(self.pos[:, 0], self.pos[:, 1], marker='o', c=mcd.CSS4_COLORS['cyan'])
         plt.scatter(self.pos[touch, 0], self.pos[touch, 1], marker='o', c='b')
 
         for piece in pieces:
             ordered_points = self.pos[piece]
             plt.plot(ordered_points[:, 0], ordered_points[:, 1], f'b-')
+            for i in piece:
+                plt.annotate(str(i), (self.pos[i, 0], self.pos[i, 1]))
 
-        plt.savefig(f"./data/test/images/multi-frags_ML-greeedy.png")
+        plt.title(title)
+        plt.savefig(f"./data/test/images/{title}.png")
         plt.show()
 
     def case_step(self, pre_solution, new_step, prev_step, case):
@@ -137,12 +140,12 @@ class possible_plots:
         sol_list = [from_city, curr_c]
         while True:
             if len(solution_dict[str(curr_c)]) == 2:
-                print("lista pezzo", sol_list)
-                print("dict nodo", solution_dict[str(curr_c)])
+                # print("lista pezzo", sol_list)
+                # print("dict nodo", solution_dict[str(curr_c)])
                 curr_c = [e for e in solution_dict[str(curr_c)] if e not in sol_list][0]
                 if curr_c not in sol_list:
                     sol_list.append(curr_c)
-                    print(sol_list)
+                    # print(sol_list)
             else:
                 return sol_list
 
@@ -167,5 +170,5 @@ class possible_plots:
         plt.scatter(pos[:, 0], pos[:, 1], marker='o', c=mcd.CSS4_COLORS['cyan'])
         sol_p = sol + [sol[0]]
         ordered_points = pos[sol_p]
-        plt.plot(ordered_points[:, 0], ordered_points[:, 1], f'b-')
-        plt.show()
+        plt.plot(ordered_points[:, 0], ordered_points[:, 1], f'r-')
+        # plt.show()
