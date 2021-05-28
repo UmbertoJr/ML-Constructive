@@ -7,6 +7,7 @@ from torch import tensor
 from InOut.output_agent import OutputHandler
 from InOut.candidateSets import CandidatesAgent
 from InOut.utils import transformation, pixel_in_image, normalize_image, plot_cv, distance_mat, plot_single_cv
+from test.classic_constructive import EdgeInsertion
 
 intensity = 255
 to_plot = False
@@ -47,7 +48,15 @@ class ImageTrainDataCreator:
     def get_num_of_images(self, number_cities, pos):
         dist_matrix = distance_mat(pos)
         LP = create_LP(number_cities, create_neigs(number_cities, dist_matrix, self.settings.cases_in_L_P), dist_matrix)
-        return len(LP)
+        partial_sol = {str(i):[] for i in range(number_cities)}
+        count = 0
+        for city1, city2 in LP:
+            if EdgeInsertion.innerLoopTracker((city1, city2), partial_sol):
+                count += 1
+                partial_sol[str(city1)].append(city2)
+                partial_sol[str(city2)].append(city1)
+
+        return count
 
     def create_data_for_all(self, data):
         number_cities, pos, tour = data
@@ -69,19 +78,20 @@ class ImageTrainDataCreator:
         # selects the list of promising edges
         iter_ = 0
         for city1, city2 in LP:
-            # select the candidate set for the current edge l=[city1, city2]
-            neig = candidates_agent.create_candidate(city1, city2)
+            if EdgeInsertion.innerLoopTracker((city1, city2), partial_sol):
+                # select the candidate set for the current edge l=[city1, city2]
+                neig = candidates_agent.create_candidate(city1, city2)
 
-            # the fun creates input and output for current city
-            image_, out_ = self.create_in_out(city1, city2, neig, pos, output_handler, partial_sol)
+                # the fun creates input and output for current city
+                image_, out_ = self.create_in_out(city1, city2, neig, pos, output_handler, partial_sol)
 
-            if out_ == 1:
-                partial_sol[city1].append(city2)
-                partial_sol[city2].append(city1)
+                if out_ == 1:
+                    partial_sol[city1].append(city2)
+                    partial_sol[city2].append(city1)
 
-            output_data[iter_] = out_
-            input_images[iter_] = image_
-            iter_ += 1
+                output_data[iter_] = out_
+                input_images[iter_] = image_
+                iter_ += 1
 
         input_images, output_data = self.to_torch(input_images, output_data)
         return input_images, output_data
