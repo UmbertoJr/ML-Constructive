@@ -49,7 +49,7 @@ def train_the_best_configuration(settings):
     max_PLR = 0
     entropy = 0
     average_plr = 0.1
-    for epoch in range(5):
+    for epoch in range(15):
         generator = DatasetHandler(settings)
         data_logger = tqdm(DataLoader(generator, batch_size=settings.bs, drop_last=True))
         for data in data_logger:
@@ -75,11 +75,12 @@ def train_the_best_configuration(settings):
 
             TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh.update_metrics(TP, FP, TN, FN)
 
-            new_plr = (TP)/(TP + FN + 3 * FP)
+            # new_plr = (TP)/(TP + FN + 3 * FP)
+            new_plr = TPR / (1 + FPR)
             average_plr = (new_plr * 0.001) + (0.999 * average_plr)
             advantage = new_plr - average_plr
             advantage_t = torch.FloatTensor([advantage]).to(device).detach()
-            actor_loss = -(log_probs * advantage_t).mean() + 0.001 * entropy
+            actor_loss = -(log_probs * advantage_t).mean()
 
             optimizer2.zero_grad()
             actor_loss.backward()
@@ -101,10 +102,10 @@ def train_the_best_configuration(settings):
                 val = tester.test(model, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, iteration)
                 if val > max_PLR:
                     torch.save(model.state_dict(),
-                               dir_ent.folder_train + 'best_model_RL_v8_PLR.pth')
-                    best_list.append(val)
+                               dir_ent.folder_train + f'best_model_RL_v9_PLR_{val}.pth')
+                    best_list.append((iteration, val))
                     max_PLR = val
             iteration += 1
 
-    tester.save_csv("looking_RL_v8_PLR_new2")
+    tester.save_csv("looking_RL_v9_PLR_new2")
     print(best_list)

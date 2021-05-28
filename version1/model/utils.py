@@ -46,7 +46,7 @@ class Metrics_Handler:
         TNR = self.FN / self.CN
         ACC = (self.TP + self.TN) / (self.CN + self.CP)
         BAL_ACC = (TPR + TNR) / 2
-        # PLR = TPR / (1 + FPR)
-        PLR = self.TP / (self.TP + self.FN + 3 * self.FP)
+        PLR = TPR / (1 + FPR)
+        # PLR = self.TP / (self.TP + self.FN + 3 * self.FP)
         BAL_PLR = self.TP / self.FP
         return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR
