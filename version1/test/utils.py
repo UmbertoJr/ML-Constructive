@@ -75,7 +75,7 @@ class possible_plots:
         self.step = 0
         self.pos = pos
         self.prob = prob
-        create_folder(folder_name_to_create=f"images/prob_{prob}/", starting_folder="./data/test/")
+        create_folder(folder_name_to_create=f"./data/images/", starting_folder="./data/test/")
 
     def plot_edge(self, x, y, c='chartreuse', style='-'):
         nodes = [x, y]
@@ -85,13 +85,13 @@ class possible_plots:
         self.plot_situation(pre_solution, title=f"added {x} {y}")
         self.plot_edge(x, y)
         plt.title(f"selection nodes {x, y}")
-        plt.savefig(f"./data/test/images/prob_{self.prob}/step{self.step}.png")
+        plt.savefig(f"./data/images/prob_{self.prob}/step{self.step}.png")
         self.step += 1
 
     def final_situation(self, sol):
         self.plot_situation(sol)
         plt.title("final preselection")
-        plt.savefig(f"./data/test/images/prob_{self.prob}/step{self.step}.png")
+        plt.savefig(f"./data/images/prob_{self.prob}/step{self.step}.png")
 
     def plot_situation(self, solution_dict, title=''):
         pieces = []
@@ -115,11 +115,11 @@ class possible_plots:
         for piece in pieces:
             ordered_points = self.pos[piece]
             plt.plot(ordered_points[:, 0], ordered_points[:, 1], f'b-')
-            for i in piece:
-                plt.annotate(str(i), (self.pos[i, 0], self.pos[i, 1]))
+            # for i in piece:
+            #     plt.annotate(str(i), (self.pos[i, 0], self.pos[i, 1]))
 
-        plt.title(title)
-        plt.savefig(f"./data/test/images/{title}.png")
+        # plt.title(title)
+        plt.savefig(f"./data/images/{title}.png")
         plt.show()
 
     def case_step(self, pre_solution, new_step, prev_step, case):

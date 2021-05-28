@@ -6,9 +6,9 @@ from torch.distributions import Categorical
 
 from model.network import resnet_for_the_tsp
 from InOut.tools import DirManager
-from InOut.image_manager import DatasetHandler
 from model.utils import compute_metrics, Metrics_Handler
 from model.several_models import run_experiments
+from InOut.image_manager import DatasetHandler
 
 
 def train_the_net(settings):

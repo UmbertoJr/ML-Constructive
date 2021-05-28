@@ -71,12 +71,12 @@ class PreSelection(EdgeInsertion):
         return False
 
     def solve(self):
-        # plotter = possible_plots(self.pos, self.prob_to_check)
+        plotter = possible_plots(self.pos, self.prob_to_check)
         self.firstPhase()
         solution = self.secondPhase()
-        # plotter.plot_current_sol(self.pos, solution)
-        # plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
-        # input()
+        plotter.plot_current_sol(self.pos, solution)
+        plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
+        input()
         return solution
 
     def secondPhase(self):
@@ -150,6 +150,7 @@ class PreSelection(EdgeInsertion):
         self.net.eval()
         ret = self.net(image_)
         ret = ret.detach().cpu().numpy()[0]
+        # print(ret)
         return True if ret[1] > self.prob_to_check else False
 
     def check_first(self, i, j):

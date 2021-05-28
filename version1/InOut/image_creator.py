@@ -7,7 +7,7 @@ from torch import tensor
 from InOut.output_agent import OutputHandler
 from InOut.candidateSets import CandidatesAgent
 from InOut.utils import transformation, pixel_in_image, normalize_image, plot_cv, distance_mat, plot_single_cv
-from test.classic_constructive import EdgeInsertion
+# from test.classic_constructive import EdgeInsertion
 
 intensity = 255
 to_plot = False

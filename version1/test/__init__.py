@@ -79,7 +79,8 @@ def create_list_to_save(solvers, admin):
 
 def test_metrics_on_TSPLIB(settings):
     # constructive_algs = ['first', 'ML-G', 'ML-SC']
-    constructive_algs = ['ML-G']
+    # constructive_algs = ['ML-G']
+    constructive_algs = ['ML-SC']
     data_p = {'Method': [], 'Position in the CL': [], 'True Positive Rate': []}
     data_n = {'Method': [], 'Position in the CL': [], 'False Positive Rate': []}
     # for prob in [0.66, 0.67, 0.68, 0.69, 0.695, 0.71, 0.72, 0.73, 0.74]:
