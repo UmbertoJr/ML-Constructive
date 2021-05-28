@@ -1,2 +1,3 @@
-/version1/data
+/version1/data/
 __pycache__/
+.idea/
