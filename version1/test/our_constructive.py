@@ -142,7 +142,7 @@ class PreSelection(EdgeInsertion):
         return ret_bool
 
     def check_EVENT_with_net(self, i, j):
-        image, too_close = self.image_creator.get_image(i, j)
+        image, too_close = self.image_creator.get_image(i, j, self.firstPhaseSolution)
         image = np.stack([image, image], axis=0)
         if too_close:
             return True

@@ -221,18 +221,7 @@ class ImageTestCreator(ImageCreator):
                       thickness=-1, lineType=cv.LINE_AA)
 
         for i, j in enumerate(p_go):
-            c_x, c_y = pixel_man.pixel_pos(vec=pos_go[i])
-            cv.circle(im, (c_x, c_y), self.raggio_nodo, blue,
-                      thickness=-1, lineType=cv.LINE_AA)
-            for h in p_sol[j]:
-                h_x, h_y = pixel_man.pixel_pos(vec=pos_go[h])
-                cv.circle(im, (h_x, h_y), self.raggio_nodo, blue,
-                          thickness=-1, lineType=cv.LINE_AA)
-                im = cv.line(im, (c_x, c_y), (h_x, h_y), blue, self.spess_edge,
-                             lineType=cv.LINE_AA)
-
-        for i, j in enumerate(p_go):
-            for h in p_sol[j]:
+            for h in p_sol[str(j)]:
                 if h in neig:
                     c_x, c_y = pixel_man.pixel_pos(vec=pos_go[i])
                     cv.circle(im, (c_x, c_y), self.raggio_nodo, blue,
