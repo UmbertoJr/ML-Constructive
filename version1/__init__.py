@@ -17,7 +17,7 @@ class Settings:
     total_number_instances: int = 40960
     num_instances_x_file: int = 1280
     cases_in_L_P: int = 2
-    last_file: int = 5
+    last_file: int = 15
     bs: int = 256
 
     def __init__(self):
@@ -49,9 +49,9 @@ if __name__ == '__main__':
     # settings.operation = 'test net'
     # settings.operation = 'train'
     # settings.operation = 'show results train'
-    # settings.operation = "get the best network parameters after first train"
+    settings.operation = "get the best network parameters after first train"
     # settings.operation = "test reconstruction"
-    settings.operation = 'test metrics on TSPLIB'
+    # settings.operation = 'test metrics on TSPLIB'
     # settings.operation = 'test variations'
     print_sett(settings)
     operations[settings.operation](settings)

@@ -7,10 +7,29 @@ from torch import tensor
 from InOut.output_agent import OutputHandler
 from InOut.candidateSets import CandidatesAgent
 from InOut.utils import transformation, pixel_in_image, normalize_image, plot_cv, distance_mat, plot_single_cv
-# from test.classic_constructive import EdgeInsertion
 
 intensity = 255
 to_plot = False
+
+
+def innerLoopTracker(edge_to_append, sol):
+    n1, n2 = edge_to_append
+    if len(sol[n1]) == 0:
+        return True
+    if len(sol[n2]) == 0:
+        return True
+    cur_city = sol[n1][0]
+    partial_tour = [n1, cur_city]
+    while True:
+        if len(sol[cur_city]) == 2:
+            for i in sol[cur_city]:
+                if i not in partial_tour:
+                    cur_city = i
+                    partial_tour.append(cur_city)
+                    if cur_city == n2:
+                        return False
+        else:
+            return True
 
 
 def create_LP(num_cit, neighborhood, dist_matrix):
@@ -48,13 +67,13 @@ class ImageTrainDataCreator:
     def get_num_of_images(self, number_cities, pos):
         dist_matrix = distance_mat(pos)
         LP = create_LP(number_cities, create_neigs(number_cities, dist_matrix, self.settings.cases_in_L_P), dist_matrix)
-        partial_sol = {str(i):[] for i in range(number_cities)}
+        partial_sol = {i : [] for i in range(number_cities)}
         count = 0
         for city1, city2 in LP:
-            if EdgeInsertion.innerLoopTracker((city1, city2), partial_sol):
+            if innerLoopTracker((city1, city2), partial_sol):
                 count += 1
-                partial_sol[str(city1)].append(city2)
-                partial_sol[str(city2)].append(city1)
+                partial_sol[city1].append(city2)
+                partial_sol[city2].append(city1)
 
         return count
 
@@ -78,7 +97,7 @@ class ImageTrainDataCreator:
         # selects the list of promising edges
         iter_ = 0
         for city1, city2 in LP:
-            if EdgeInsertion.innerLoopTracker((city1, city2), partial_sol):
+            if innerLoopTracker((city1, city2), partial_sol):
                 # select the candidate set for the current edge l=[city1, city2]
                 neig = candidates_agent.create_candidate(city1, city2)
 
