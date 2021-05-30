@@ -95,15 +95,14 @@ class Tester_on_eval:
         self.folder_data = dir_ent.create_folder_for_train(cl)
         self.device = 'cpu'
         self.net = resnet_for_the_tsp(self.settings)
-        self.net.load_state_dict(torch.load(self.dir_ent.folder_train + f'checkpoint.pth',
-                                            map_location='cpu'))
 
     def test(self, tpr, fnr, fpr, tnr, acc, bal_acc, plr, bal_plr, iteration_train):
         generator = DatasetHandler(self.settings, path='./data/eval/')
-        data_logger = DataLoader(generator, batch_size=132, drop_last=True)
+        self.net.load_state_dict(torch.load(self.dir_ent.folder_train + f'checkpoint.pth',
+                                            map_location='cpu'))
+        data_logger = DataLoader(generator, batch_size=self.settings.bs, drop_last=True)
         mht = Metrics_Handler()
         TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = (0 for i in range(8))
-        print(len(data_logger))
         for iter, data in enumerate(data_logger):
             self.net.eval()
             x, y = data["X"], data["Y"]
@@ -115,7 +114,6 @@ class Tester_on_eval:
             TP, FP, TN, FN = compute_metrics(predictions.detach(), y.detach())
 
             TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mht.update_metrics(TP, FP, TN, FN)
-            # print(iter)
             if iter > 100:
                 break
 
@@ -138,6 +136,7 @@ class Tester_on_eval:
         self.df_data["test bal PLR"].append(BAL_PLR)
 
         self.iter_list.append(iteration_train)
+        print(f"test results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}")
         return PLR
 
     def save_csv(self, name):

@@ -38,7 +38,7 @@ def train_the_best_configuration(settings):
     # loss function
     criterion = torch.nn.CrossEntropyLoss()
     log_str_fun = Logger.log_pred
-    tester = Tester_on_eval(settings, dir_ent, log_str_fun, 2, device)
+    tester = Tester_on_eval(settings, dir_ent, log_str_fun, settings.cases_in_L_P, device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     optimizer2 = torch.optim.Adam(model.parameters(), lr=0.001)
 
