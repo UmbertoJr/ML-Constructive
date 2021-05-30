@@ -137,6 +137,7 @@ class Tester_on_eval:
 
         self.iter_list.append(iteration_train)
         print(f"test results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}")
+        print("\n\n\n")
         return PLR
 
     def save_csv(self, name):

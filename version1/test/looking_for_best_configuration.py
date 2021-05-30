@@ -96,7 +96,7 @@ def train_the_best_configuration(settings):
             # log_str = log_str_fun(loss1, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
             # data_logger.set_postfix_str(log_str)
 
-            if iteration % 100 == 0 and iteration == 0:
+            if iteration % 500 == 0 and iteration != 0:
                 torch.save(model.state_dict(),
                            dir_ent.folder_train + 'checkpoint.pth')
                 val = tester.test(TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, iteration)
