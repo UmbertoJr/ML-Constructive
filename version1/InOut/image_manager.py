@@ -113,6 +113,7 @@ class DatasetHandler(Dataset):
         for i in range(len(self.files_saved)):
             self.index_file = i
             self.load_new_file()
+            print(self.num_instances_x_file)
             for j in range(self.num_instances_x_file):
                 number_cities = self.file[f'//seed_{key}'][f'num_cities'][...]
                 pos = self.file[f'//seed_{key}'][f'pos'][...]
@@ -122,6 +123,8 @@ class DatasetHandler(Dataset):
                         continue
 
                 tot_images += self.image_creator.get_num_of_images(number_cities[0], pos)
+                if self.eval:
+                    print(key, tot_images)
                 # tot_images += number_cities[0]
                 key += 1
 

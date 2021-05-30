@@ -27,8 +27,10 @@ class Generate_Instances:
     def __init__(self, settings, stats=False):
         self.settings = settings
         if stats:
+            self.range_down = 500
             self.range_up = 1000
         else:
+            self.range_down = 100
             self.range_up = 300
 
     def create_instances(self, num_instances, seed_starting_from):
@@ -57,7 +59,7 @@ class Generate_Instances:
         return num_cities, pos
 
     def __call__(self):
-        number_cities = np.random.randint(100, self.range_up)
+        number_cities = np.random.randint(self.range_down, self.range_up)
         pos = np.random.uniform(-0.5, 0.5, size=number_cities * 2).reshape((number_cities, 2))
         return number_cities, pos
 

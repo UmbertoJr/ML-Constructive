@@ -31,7 +31,7 @@ def create_instances(settings):
 
 def create_statistical_study_data(settings):
     start = time()
-    number_instances_per_file = 5000
+    number_instances_per_file = 1000
     gt = Generate_Instances(settings, stats=True)
 
     # to save created data

@@ -43,13 +43,13 @@ def train_the_best_configuration(settings):
     optimizer2 = torch.optim.Adam(model.parameters(), lr=0.001)
 
     iteration = 0
-    print(f'\n\nrunning 10 epochs for case with {settings.cases_in_L_P} neigs in L_P ...')
+    print(f'\n\nrunning 5 epochs for case with {settings.cases_in_L_P} neigs in L_P ...')
     mh = Metrics_Handler()
     best_list = []
     max_PLR = 0
     entropy = 0
     average_plr = 0.1
-    for epoch in range(15):
+    for epoch in range(5):
         generator = DatasetHandler(settings)
         data_logger = tqdm(DataLoader(generator, batch_size=settings.bs, drop_last=True))
         for data in data_logger:
@@ -69,7 +69,7 @@ def train_the_best_configuration(settings):
             dist = Categorical(probs=predictions2)
             actions = dist.sample()
             log_probs = dist.log_prob(actions)
-            entropy += dist.entropy().mean().detach()
+            # entropy += dist.entropy().mean().detach()
 
             TP, FP, TN, FN = compute_metrics(actions.detach(), y.detach(), RL=True)
 
@@ -96,16 +96,16 @@ def train_the_best_configuration(settings):
             # log_str = log_str_fun(loss1, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
             # data_logger.set_postfix_str(log_str)
 
-            if iteration % 500 == 0 and iteration != 0:
+            if iteration % 100 == 0 and iteration == 0:
                 torch.save(model.state_dict(),
                            dir_ent.folder_train + 'checkpoint.pth')
-                val = tester.test(model, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, iteration)
+                val = tester.test(TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, iteration)
                 if val > max_PLR:
                     torch.save(model.state_dict(),
-                               dir_ent.folder_train + f'best_model_RL_v9_PLR_{val}.pth')
+                               dir_ent.folder_train + f'best_model_RL_v10_PLR_{val}.pth')
                     best_list.append((iteration, val))
                     max_PLR = val
             iteration += 1
 
-    tester.save_csv("looking_RL_v9_PLR_new2")
+    tester.save_csv("looking_RL_v10_PLR_new2")
     print(best_list)

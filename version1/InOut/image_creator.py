@@ -44,8 +44,7 @@ def create_LP(num_cit, neighborhood, dist_matrix):
 def create_neigs(num_cit, dist_matrix, k):
     neigs = {}
     for i in range(num_cit):
-        a, b = np.argsort(dist_matrix[i])[1: k + 1]
-        neigs[i] = [a, b]
+        neigs[i] = np.argsort(dist_matrix[i])[1: k + 1]
     return neigs
 
 
@@ -58,7 +57,7 @@ class ImageTrainDataCreator:
     def __init__(self, settings, cases=1):
         self.settings = settings
         self.create_image = ImageCreator(settings)
-        self.input_channels = 2
+        self.input_channels = 3
         self.cases = cases
         self.type_output = torch.long
         if to_plot:
@@ -67,14 +66,13 @@ class ImageTrainDataCreator:
     def get_num_of_images(self, number_cities, pos):
         dist_matrix = distance_mat(pos)
         LP = create_LP(number_cities, create_neigs(number_cities, dist_matrix, self.settings.cases_in_L_P), dist_matrix)
-        partial_sol = {i : [] for i in range(number_cities)}
+        partial_sol = {i: [] for i in range(number_cities)}
         count = 0
         for city1, city2 in LP:
             if innerLoopTracker((city1, city2), partial_sol):
                 count += 1
                 partial_sol[city1].append(city2)
                 partial_sol[city2].append(city1)
-
         return count
 
     def create_data_for_all(self, data):

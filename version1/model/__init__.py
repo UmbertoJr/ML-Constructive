@@ -93,24 +93,29 @@ class Tester_on_eval:
         self.iter_list = []
         self.best_bal_PLR = 0.
         self.folder_data = dir_ent.create_folder_for_train(cl)
-        self.device = device
+        self.device = 'cpu'
+        self.net = resnet_for_the_tsp(self.settings)
+        self.net.load_state_dict(torch.load(self.dir_ent.folder_train + f'checkpoint.pth',
+                                            map_location='cpu'))
 
-    def test(self, model,  tpr, fnr, fpr, tnr, acc, bal_acc, plr, bal_plr, iteration_train):
+    def test(self, tpr, fnr, fpr, tnr, acc, bal_acc, plr, bal_plr, iteration_train):
         generator = DatasetHandler(self.settings, path='./data/eval/')
-        data_logger = DataLoader(generator, batch_size=256, drop_last=True)
+        data_logger = DataLoader(generator, batch_size=132, drop_last=True)
         mht = Metrics_Handler()
         TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = (0 for i in range(8))
+        print(len(data_logger))
         for iter, data in enumerate(data_logger):
-            model.eval()
+            self.net.eval()
             x, y = data["X"], data["Y"]
             x = x.to(self.device)
             y = y.to(self.device)
 
-            predictions = model(x)
+            predictions = self.net(x)
 
             TP, FP, TN, FN = compute_metrics(predictions.detach(), y.detach())
 
             TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mht.update_metrics(TP, FP, TN, FN)
+            # print(iter)
             if iter > 100:
                 break
 

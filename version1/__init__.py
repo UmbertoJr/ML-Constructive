@@ -16,9 +16,9 @@ class Settings:
     thickness_edge: int = 1
     total_number_instances: int = 40960
     num_instances_x_file: int = 1280
-    cases_in_L_P: int = 2
+    cases_in_L_P: int = 3
     last_file: int = 15
-    bs: int = 256
+    bs: int = 132  #256
 
     def __init__(self):
         pass
