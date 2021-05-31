@@ -64,8 +64,8 @@ def stat_plots(settings):
     plt.savefig('data/images/opt_distr_CL.png')
     plt.show()
 
-    # print('\n\nTrue Positive Rate and False Positive Rate\n')
-    # check_distributions_across_different_heuristics(settings)
+    print('\n\nTrue Positive Rate and False Positive Rate\n')
+    check_distributions_across_different_heuristics(settings)
 
 
 def distribution_fun(settings, number_cities, pos, optimal_tour):

@@ -45,11 +45,11 @@ operations = {
 if __name__ == '__main__':
     settings = Settings()
     # settings.operation = 'create statistical study instances'
-    # settings.operation = 'statistical study'
+    settings.operation = 'statistical study'
     # settings.operation = 'test net'
     # settings.operation = 'train'
     # settings.operation = 'show results train'
-    settings.operation = "get the best network parameters after first train"
+    # settings.operation = "get the best network parameters after first train"
     # settings.operation = "test reconstruction"
     # settings.operation = 'test metrics on TSPLIB'
     # settings.operation = 'test variations'
