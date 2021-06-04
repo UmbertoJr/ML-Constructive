@@ -42,7 +42,8 @@ class DatasetHandler(Dataset):
         self.image_creator = ImageTrainDataCreator(settings, cases=self.cases)
 
         # self.len = self.find_len()
-        self.len = 1206121
+        # self.len = 1206121
+        self.len = 7880633
         self.create_new_data = self.image_creator.create_data_for_all
 
     def __len__(self):
@@ -113,7 +114,6 @@ class DatasetHandler(Dataset):
         for i in range(len(self.files_saved)):
             self.index_file = i
             self.load_new_file()
-            print(self.num_instances_x_file)
             for j in range(self.num_instances_x_file):
                 number_cities = self.file[f'//seed_{key}'][f'num_cities'][...]
                 pos = self.file[f'//seed_{key}'][f'pos'][...]
@@ -123,6 +123,7 @@ class DatasetHandler(Dataset):
 
         # len_tot_images = tot_images * self.cases
         # return int(len_tot_images)
+        print(tot_images)
         return tot_images
 
     def load_new_file(self):

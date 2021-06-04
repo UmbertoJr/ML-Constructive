@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
-from model import Tester_on_eval, Logger
+from test.utils import Tester_on_eval, Logger
 
 from test.utils import OutcomeAdmin
-from InOut.tools import DirManager
+from InOut.tools import DirManager, create_folder
 from test.local_search import LocalSearch
 from test.contructive_heuristics import Constructive
 from instances_generator.test import SampleCreator, plot_histogram
@@ -81,13 +81,15 @@ def test_metrics_on_TSPLIB(settings):
     # constructive_algs = ['first', 'ML-G', 'ML-SC']
     constructive_algs = ['ML-G']
     # constructive_algs = ['ML-SC']
+    # constructive_algs = ['first']
     data_p = {'Method': [], 'Position in the CL': [], 'True Positive Rate': []}
     data_n = {'Method': [], 'Position in the CL': [], 'False Positive Rate': []}
     # for prob in [0.66, 0.67, 0.68, 0.69, 0.695, 0.71, 0.72, 0.73, 0.74]:
     #              0.55, 0.6, 0.65, 0.7, 0.75, .8, 0.85, 0.9, 0.95, 1]:
     # for prob in [0.71, 0.72, 0.73, 0.74, 0.75, 0.76, 0.78, 0.79, 0.81, 0.82, 0.83, 0.84]:
     # for prob in [0.85, 0.86, 0.87, 0.88, 0.89, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99]:
-    for prob in np.linspace(0., 1., num=101):
+    # for prob in np.linspace(0.4, 1., num=61):
+    for prob in [0.99]:
         metrics = []
         data = {}
         for solv in constructive_algs:
@@ -116,7 +118,10 @@ def test_metrics_on_TSPLIB(settings):
         # break
         df_result.loc['mean'] = df_result.mean()
         df_result.loc['std'] = df_result.std()
-        df_result.to_csv(F'./data/test/reconstruction/prom_results_ML-G_prob_{prob}.csv')
+        create_folder(folder_name_to_create=f"test/reconstruction/CL_{settings.cases_in_L_P}/",
+                      starting_folder='./data/')
+        df_result.to_csv(F'./data/test/reconstruction/CL_{settings.cases_in_L_P}/results_ML-G_prob_{prob}.csv')
+
     # df_positive = pd.DataFrame(data_p)
     # df_positive.to_csv('./data/test/reconstruction/positive_cases_ML-G.csv')
     # print(df_positive.groupby(['Method', 'Position in the CL']).mean())

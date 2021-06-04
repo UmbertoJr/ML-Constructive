@@ -14,6 +14,8 @@ to_plot = False
 
 def innerLoopTracker(edge_to_append, sol):
     n1, n2 = edge_to_append
+    if len(sol[n1]) > 2 or len(sol[n2]) > 2:
+        return False
     if len(sol[n1]) == 0:
         return True
     if len(sol[n2]) == 0:
@@ -24,6 +26,9 @@ def innerLoopTracker(edge_to_append, sol):
         if len(sol[cur_city]) == 2:
             for i in sol[cur_city]:
                 if i not in partial_tour:
+                    # print(i)
+                    # print(i, partial_tour, n1, n2)
+                    # print(sol)
                     cur_city = i
                     partial_tour.append(cur_city)
                     if cur_city == n2:
@@ -66,6 +71,7 @@ class ImageTrainDataCreator:
     def get_num_of_images(self, number_cities, pos):
         dist_matrix = distance_mat(pos)
         LP = create_LP(number_cities, create_neigs(number_cities, dist_matrix, self.settings.cases_in_L_P), dist_matrix)
+        # print(f"number cities :{number_cities}")
         partial_sol = {i: [] for i in range(number_cities)}
         count = 0
         for city1, city2 in LP:

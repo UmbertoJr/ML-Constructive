@@ -1,11 +1,17 @@
 import os
 import cv2
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib._color_data as mcd
 from cv2 import VideoWriter, VideoWriter_fourcc
 
 from InOut.tools import evaluate_solution, create_folder
+from model import resnet_for_the_tsp
+from test.tsplib_reader import EvalGenerator
+import torch
+from InOut import DatasetHandler
+from torch.utils.data import DataLoader
 
 tempo = 2
 verbose = False
@@ -164,7 +170,6 @@ class possible_plots:
             out.write(img)
         out.release()
 
-
     @staticmethod
     def plot_current_sol(pos, sol):
         plt.scatter(pos[:, 0], pos[:, 1], marker='o', c=mcd.CSS4_COLORS['cyan'])
@@ -172,3 +177,177 @@ class possible_plots:
         ordered_points = pos[sol_p]
         plt.plot(ordered_points[:, 0], ordered_points[:, 1], f'r-')
         # plt.show()
+
+
+class Logger:
+    @staticmethod
+    def log_pred(loss, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR):
+        return f'loss: {loss:.5f} ' \
+               f' acc  {ACC * 100 :.2f} ' \
+               f' acc bal {BAL_ACC * 100 :.2f}' \
+               f' PLR {PLR :.4f}' \
+               f' PLR bal {BAL_PLR :.4f}' \
+               f' TPR {TPR * 100:.2f}' \
+               f' FPR {FPR * 100:.2f}'
+
+
+class Tester_on_eval:
+
+    def __init__(self, settings, dir_ent, log_str_fun, cl, device):
+        self.settings = settings
+        self.dir_ent = dir_ent
+        self.log_fun = log_str_fun
+        self.df_data = {"train TPR": [], "train FPR": [], "train TNR": [], "train FNR": [],
+                        "train Acc": [], "train bal Acc": [], "train PLR": [], "train bal PLR": [],
+                        "eval TPR": [], "eval FPR": [], "eval TNR": [], "eval FNR": [],
+                        "eval Acc": [], "eval bal Acc": [], "eval PLR": [], "eval bal PLR": [],
+                        "test TPR": [], "test FPR": [], "test TNR": [], "test FNR": [],
+                        "test Acc": [], "test bal Acc": [], "test PLR": [], "test bal PLR": [],
+                        }
+        self.iter_list = []
+        self.best_bal_PLR = 0.
+        self.folder_data = dir_ent.create_folder_for_train(cl)
+        self.device = 'cpu'
+        self.net = resnet_for_the_tsp(self.settings)
+
+    def test(self, tpr, fnr, fpr, tnr, acc, bal_acc, plr, bal_plr, iteration_train):
+
+        def check_eval():
+            generator = DatasetHandler(self.settings, path='./data/eval/')
+            self.net.load_state_dict(torch.load(self.dir_ent.folder_train + f'checkpoint.pth',
+                                                map_location='cpu'))
+            data_logger = DataLoader(generator, batch_size=self.settings.bs, drop_last=True)
+            mht = Metrics_Handler()
+            TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = (0 for i in range(8))
+            self.net.eval()
+            with torch.no_grad():
+                for iter, data in enumerate(data_logger):
+                    x, y = data["X"], data["Y"]
+                    x = x.to(self.device)
+                    y = y.to(self.device)
+
+                    predictions = self.net(x)
+
+                    TP, FP, TN, FN = compute_metrics(predictions.detach(), y.detach())
+
+                    TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mht.update_metrics(TP, FP, TN, FN)
+                    if iter > 500:
+                        break
+            return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR
+
+        def check_test():
+            generator2 = EvalGenerator(self.settings)
+            data_logger2 = DataLoader(generator2, batch_size=generator2.bs_test, drop_last=True)
+            mht = Metrics_Handler()
+            TPR_test, FNR_test, FPR_test, TNR_test, ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test = (0 for i in
+                                                                                                      range(8))
+            self.net.eval()
+            with torch.no_grad():
+                for iter, data in enumerate(data_logger2):
+                    x, y = data["X"], data["Y"]
+                    x = x.to(self.device)
+                    y = y.to(self.device)
+
+                    predictions = self.net(x)
+
+                    TP, FP, TN, FN = compute_metrics(predictions.detach(), y.detach())
+
+                    TPR_test, FNR_test, FPR_test, TNR_test, \
+                    ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test = mht.update_metrics(TP, FP, TN, FN)
+            return TPR_test, FNR_test, FPR_test, TNR_test, ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test
+
+        TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = check_eval()
+        TPR_test, FNR_test, FPR_test, TNR_test, ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test = check_test()
+
+        self.df_data["train TPR"].append(tpr)
+        self.df_data["train FNR"].append(fnr)
+        self.df_data["train TNR"].append(tnr)
+        self.df_data["train FPR"].append(fpr)
+        self.df_data["train Acc"].append(acc)
+        self.df_data["train bal Acc"].append(bal_acc)
+        self.df_data["train PLR"].append(plr)
+        self.df_data["train bal PLR"].append(bal_plr)
+
+        self.df_data["eval TPR"].append(TPR)
+        self.df_data["eval FNR"].append(FNR)
+        self.df_data["eval TNR"].append(TNR)
+        self.df_data["eval FPR"].append(FPR)
+        self.df_data["eval Acc"].append(ACC)
+        self.df_data["eval bal Acc"].append(BAL_ACC)
+        self.df_data["eval PLR"].append(PLR)
+        self.df_data["eval bal PLR"].append(BAL_PLR)
+
+        self.df_data["test TPR"].append(TPR_test)
+        self.df_data["test FNR"].append(FNR_test)
+        self.df_data["test TNR"].append(TNR_test)
+        self.df_data["test FPR"].append(FPR_test)
+        self.df_data["test Acc"].append(ACC_test)
+        self.df_data["test bal Acc"].append(BAL_ACC_test)
+        self.df_data["test PLR"].append(PLR_test)
+        self.df_data["test bal PLR"].append(BAL_PLR_test)
+
+        self.iter_list.append(iteration_train)
+        print()
+        print(f"eval results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}")
+        print(f"eval results -->   TPR : {TPR_test},  FPR : {FPR_test}, "
+              f"Acc : {ACC_test},  PLR : {PLR_test}, delta : {TPR - FPR}")
+        print("\n\n\n")
+        return TPR - FPR
+
+    def save_csv(self, name):
+        self.df = pd.DataFrame(data=self.df_data, index=self.iter_list)
+        if not name:
+            self.name_case = f'dataset_train_history'
+        else:
+            self.name_case = name
+        self.df.to_csv(f"{self.folder_data}{self.name_case}.csv")
+
+
+def compute_metrics(preds, y, rl_bool=False):
+    preds = preds.cpu().numpy()
+    y = y.cpu().numpy()
+    TP, FP, TN, FN, CP, CN = (0. for _ in range(6))
+    for i in range(preds.shape[0]):
+        if not rl_bool:
+            best = np.argsort(preds[i])[::-1][:1][0]
+        else:
+            best = preds[i]
+        if best == y[i]:
+            if y[i] == 1:
+                TP += 1
+            else:
+                TN += 1
+        else:
+            if y[i] == 1:
+                FN += 1
+            else:
+                FP += 1
+    return TP, FP, TN, FN
+
+
+class Metrics_Handler:
+    def __init__(self):
+        self.CP = 1
+        self.CN = 1
+        self.TP = 1
+        self.FP = 0
+        self.TN = 1
+        self.FN = 0
+
+    def update_metrics(self, tp, fp, tn, fn):
+        self.TP += tp
+        self.FP += fp
+        self.TN += tn
+        self.FN += fn
+        self.CP += tp + fn
+        self.CN += tn + fp
+        TPR = self.TP / self.CP
+        FNR = self.FN / self.CP
+        FPR = self.FP / self.CN
+        TNR = self.FN / self.CN
+        ACC = (self.TP + self.TN) / (self.CN + self.CP)
+        BAL_ACC = (TPR + TNR) / 2
+        PLR = TPR / (1 + FPR)
+        # PLR = self.TP / (self.TP + self.FN + 3 * self.FP)
+        BAL_PLR = self.TP / (self.FP + 1)
+        return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR

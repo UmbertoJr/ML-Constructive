@@ -27,7 +27,10 @@ class PreSelection(EdgeInsertion):
         self.net.to('cpu')
         # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_2/best_model_RL_v2_PLR_new.pth',
         #                                     map_location='cpu'))
-        self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_RL_PLR.pth',
+        # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_RL_ACC.pth',
+        #                                     map_location='cpu'))
+
+        self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_low_FPR.pth',
                                             map_location='cpu'))
 
         if method == "optimal":
@@ -72,7 +75,9 @@ class PreSelection(EdgeInsertion):
     def solve(self):
         # plotter = possible_plots(self.pos, self.prob_to_check)
         self.firstPhase()
-        # print(f"inserted: {self.edges_inserted}, tot cases: {len(self.LP)} ,percentage inserted = {self.edges_inserted/len(self.LP)}")
+        # print(f"inserted: {self.edges_inserted}, tot cases: {len(self.LP)} ,"
+        #       f"percentage inserted = {self.edges_inserted/len(self.LP)}, "
+        #       f"partial solution found: {self.edges_inserted/ self.num_cit}")
         solution = self.secondPhase()
         # plotter.plot_current_sol(self.pos, solution)
         # plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")

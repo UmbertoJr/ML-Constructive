@@ -37,10 +37,11 @@ class Read_TSP_Files:
             "gr431.tsp",
             "pr439.tsp", "pcb442.tsp", "d493.tsp",
             "att532.tsp", "u574.tsp",
-            "rat575.tsp", "d657.tsp", "gr666.tsp", "u724.tsp", "rat783.tsp", "pr1002.tsp",
+            "rat575.tsp", "d657.tsp", "gr666.tsp",
+            "u724.tsp", "rat783.tsp", "pr1002.tsp",
             "u1060.tsp", "vm1084.tsp", "pcb1173.tsp",
             "d1291.tsp", "rl1304.tsp", "rl1323.tsp",
-            "nrw1379.tsp", "fl1400.tsp", "u1432.tsp",
+            "nrw1379.tsp", "fl1400.tsp","u1432.tsp",
             "fl1577.tsp", "d1655.tsp", "vm1748.tsp",
         ]
 
@@ -166,11 +167,11 @@ class EvalGenerator(Dataset):
     def __init__(self, settings):
         super(EvalGenerator, self).__init__()
         self.reader = Read_TSP_Files()
-        self.bs_test = 102
-        # self.len = self.find_len()
-        self.len = 10302
+        self.bs_test = 425
         self.image_creator = ImageTrainDataCreator(settings)
         self.create_new_data = self.image_creator.create_data_for_all
+        # self.len = self.find_len()
+        self.len = 31025
         self.create_testdata()
 
     def __len__(self):
@@ -196,10 +197,11 @@ class EvalGenerator(Dataset):
         tot_images = 0
         for data in self.reader.instances_generator():
             number_cities, pos, dist_matrix, name, optimal_tour = data
-            tot_images += number_cities
+            tot_images += self.image_creator.get_num_of_images(number_cities, pos)
+            print(number_cities, tot_images)
 
-        len_tot_images = tot_images * 2
-        return int(len_tot_images)
+        print(tot_images)
+        return int(tot_images)
 
 
 def test_TSPLIB_generator(settings):
