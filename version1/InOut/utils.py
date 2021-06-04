@@ -71,6 +71,8 @@ def plot_cv(im_list, city):
         el = (el * 255).astype(np.uint8)
         # el = (el).astype(np.uint8)
         img = cv.resize(el, (96 * 4, 96 * 4), interpolation=cv.INTER_NEAREST)
+        print(img.shape)
+        cv.imwrite(f'./data/images/example/{names[ind]}_{np.random.uniform(0, 1)}.png', img)
         # img = el
         # print(img.shape)
         # if len(img.shape) > 2:
@@ -90,6 +92,7 @@ def plot_single_cv(image):
     el = (image * 255).astype(np.uint8)
     img = cv.resize(el, (96 * 4, 96 * 4), interpolation=cv.INTER_NEAREST)
     cv.imshow('image', img)
+    # cv.imwrite(f'./data/images/example/image_{np.random.uniform(0, 1)}.png', img)
     cv.waitKey(0)
     cv.destroyAllWindows()
 

@@ -30,8 +30,8 @@ class PreSelection(EdgeInsertion):
         # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_RL_ACC.pth',
         #                                     map_location='cpu'))
 
-        self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_low_FPR.pth',
-                                            map_location='cpu'))
+        # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_low_FPR.pth',
+        #                                     map_location='cpu'))
 
         if method == "optimal":
             self.ML_check = self.check_EVENT_optimal

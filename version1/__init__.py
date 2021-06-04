@@ -49,9 +49,9 @@ if __name__ == '__main__':
     # settings.operation = 'test net'
     # settings.operation = 'train'
     # settings.operation = 'show results train'
-    # settings.operation = "get the best network parameters after first train"
+    settings.operation = "get the best network parameters after first train"
     # # settings.operation = "test reconstruction"
-    settings.operation = 'test metrics on TSPLIB'
+    # settings.operation = 'test metrics on TSPLIB'
     # settings.operation = 'test variations'
     print_sett(settings)
     operations[settings.operation](settings)

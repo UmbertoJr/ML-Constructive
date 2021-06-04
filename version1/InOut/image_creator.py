@@ -14,7 +14,7 @@ to_plot = False
 
 def innerLoopTracker(edge_to_append, sol):
     n1, n2 = edge_to_append
-    if len(sol[n1]) > 2 or len(sol[n2]) > 2:
+    if len(sol[n1]) >= 2 or len(sol[n2]) >= 2:
         return False
     if len(sol[n1]) == 0:
         return True
