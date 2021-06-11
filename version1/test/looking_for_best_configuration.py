@@ -1,4 +1,6 @@
+import numpy as np
 import torch
+from collections import deque
 import pandas as pd
 from tqdm import tqdm
 import seaborn as sbn
@@ -49,7 +51,7 @@ def train_the_best_configuration(settings):
     max_PLR = 0
     min_FPR = 1.
     entropy = 0
-    average_plr = 0.5
+    average_plr = deque([0.5 for _ in range(100)])
     for epoch in range(1):
         generator = DatasetHandler(settings)
         data_logger = tqdm(DataLoader(generator, batch_size=settings.bs, drop_last=True))
@@ -79,11 +81,13 @@ def train_the_best_configuration(settings):
             # new_plr = (TP)/(TP + FN + 3 * FP)
             # new_plr = TPR / (1 + FPR)
             # new_plr = ACC
-            new_plr = TPR + TNR - FPR - FNR
-            average_plr = (new_plr * 0.01) + (0.99 * average_plr)
-            advantage = new_plr - average_plr
+            new_plr = TPR + TNR - FPR - FNR   # provare con TPR - FPR
+            # new_plr = TPR - FPR
+            advantage = new_plr - np.average(average_plr)
+            average_plr.append(new_plr)
+            average_plr.popleft()
             advantage_t = torch.FloatTensor([advantage]).to(device).detach()
-            actor_loss = -(log_probs * advantage_t).mean()
+            actor_loss = (log_probs * advantage_t).mean()
 
             optimizer2.zero_grad()
             actor_loss.backward()
@@ -106,11 +110,11 @@ def train_the_best_configuration(settings):
                 if val > max_PLR:
                 # if val < min_FPR:
                     torch.save(model.state_dict(),
-                               dir_ent.folder_train + f'best_model_diff_{val}.pth')
+                               dir_ent.folder_train + f'best_model_diff3_{val}.pth')
                     best_list.append((iteration, val))
                     max_PLR = val
                     # min_FPR = val
             iteration += 1
 
-    tester.save_csv("looking_diff")
+    tester.save_csv("looking_diff3")
     print(best_list)

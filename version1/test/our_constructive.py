@@ -27,11 +27,11 @@ class PreSelection(EdgeInsertion):
         self.net.to('cpu')
         # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_2/best_model_RL_v2_PLR_new.pth',
         #                                     map_location='cpu'))
-        # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_RL_ACC.pth',
-        #                                     map_location='cpu'))
-
-        self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_low_FPR.pth',
+        self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_diff.pth',
                                             map_location='cpu'))
+
+        # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_low_FPR.pth',
+        #                                     map_location='cpu'))
 
         if method == "optimal":
             self.ML_check = self.check_EVENT_optimal
@@ -53,12 +53,20 @@ class PreSelection(EdgeInsertion):
         self.edges_inserted = 0
 
     def create_LP(self):
-        LP_v = {}
-        for node in range(self.num_cit):
-            for h in self.neighborhood[node]:
-                if (node, h) not in LP_v.keys() and (h, node) not in LP_v.keys():
+        len_neig = len(self.neighborhood[0])
+        LP_v = {i: {} for i in range(len_neig)}
+        keys = []
+        return_list = []
+        for in_cl in range(len_neig):
+            for node in range(self.num_cit):
+                h = self.neighborhood[node][in_cl]
+                if (node, h) not in keys and (h, node) not in keys:
                     LP_v[(node, h)] = self.dist_matrix[node, h]
-        return [k for k, v in sorted(LP_v.items(), key=lambda item: item[1])]
+                    keys.append((node, h))
+
+        for in_cl in range(len_neig):
+            return_list.extend([k for k, v in sorted(LP_v[in_cl].items(), key=lambda item: item[1])])
+        return return_list
 
     def create_neigs(self):
         neigs = {}

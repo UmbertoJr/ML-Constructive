@@ -14,6 +14,7 @@ to_plot = False
 
 def innerLoopTracker(edge_to_append, sol):
     n1, n2 = edge_to_append
+    # print(sol[n1], sol[n2], n1, n2)
     if len(sol[n1]) > 2 or len(sol[n2]) > 2:
         return False
     if len(sol[n1]) == 0:
@@ -38,12 +39,21 @@ def innerLoopTracker(edge_to_append, sol):
 
 
 def create_LP(num_cit, neighborhood, dist_matrix):
-    LP_v = {}
-    for node in range(num_cit):
-        for h in neighborhood[node]:
-            if (node, h) not in LP_v.keys() and (h, node) not in LP_v.keys():
-                LP_v[(node, h)] = dist_matrix[node, h]
-    return [k for k, v in sorted(LP_v.items(), key=lambda item: item[1])]
+    len_neig = len(neighborhood[0])
+    LP_v = {i: {} for i in range(len_neig)}
+    keys = []
+    return_list = []
+    for in_cl in range(len_neig):
+        for node in range(num_cit):
+            h = neighborhood[node][in_cl]
+            if (node, h) not in keys and (h, node) not in keys:
+                LP_v[in_cl][(node, h)] = dist_matrix[node, h]
+                keys.append((node, h))
+
+    for in_cl in range(len(neighborhood[0])):
+        return_list.extend([k for k, v in sorted(LP_v[in_cl].items(), key=lambda item: item[1])])
+
+    return return_list
 
 
 def create_neigs(num_cit, dist_matrix, k):
@@ -86,9 +96,9 @@ class ImageTrainDataCreator:
         dist_matrix = distance_mat(pos)
         LP = create_LP(number_cities, create_neigs(number_cities, dist_matrix, self.settings.cases_in_L_P), dist_matrix)
         num_images = len(LP)
-        return self.create_data(num_images, pos, LP, tour)
+        return self.create_data(num_images, pos, LP, tour, number_cities)
 
-    def create_data(self, num_images, pos, LP, optimal_tour):
+    def create_data(self, num_images, pos, LP, optimal_tour, number_cities):
         settings = self.settings
 
         # creation empty data collector
@@ -96,10 +106,11 @@ class ImageTrainDataCreator:
 
         # tools initialization
         dist_matrix, pos, max_global, candidates_agent, output_handler = self.tools_init(pos, optimal_tour)
-        partial_sol = {i: [] for i in range(num_images)}
+        partial_sol = {i: [] for i in range(number_cities)}
 
         # selects the list of promising edges
         iter_ = 0
+        # print(len(LP), )
         for city1, city2 in LP:
             if innerLoopTracker((city1, city2), partial_sol):
                 # select the candidate set for the current edge l=[city1, city2]

@@ -170,8 +170,8 @@ class EvalGenerator(Dataset):
         self.bs_test = 425
         self.image_creator = ImageTrainDataCreator(settings)
         self.create_new_data = self.image_creator.create_data_for_all
-        # self.len = self.find_len()
-        self.len = 31025
+        self.len = self.find_len()
+        # self.len = 31025
         self.create_testdata()
 
     def __len__(self):
@@ -198,7 +198,7 @@ class EvalGenerator(Dataset):
         for data in self.reader.instances_generator():
             number_cities, pos, dist_matrix, name, optimal_tour = data
             tot_images += self.image_creator.get_num_of_images(number_cities, pos)
-            print(number_cities, tot_images)
+            # print(number_cities, tot_images)
 
         print(tot_images)
         return int(tot_images)

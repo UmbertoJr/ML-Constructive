@@ -89,7 +89,8 @@ def test_metrics_on_TSPLIB(settings):
     # for prob in [0.71, 0.72, 0.73, 0.74, 0.75, 0.76, 0.78, 0.79, 0.81, 0.82, 0.83, 0.84]:
     # for prob in [0.85, 0.86, 0.87, 0.88, 0.89, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99]:
     # for prob in np.linspace(0.4, 1., num=61):
-    for prob in [0.99]:
+    for prob in np.linspace(0.9, 1., num=11):
+    # for prob in [0.99]:
         metrics = []
         data = {}
         for solv in constructive_algs:

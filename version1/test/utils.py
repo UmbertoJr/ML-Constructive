@@ -288,9 +288,9 @@ class Tester_on_eval:
 
         self.iter_list.append(iteration_train)
         print()
-        print(f"eval results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}")
+        print(f"eval results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}, delta : {TPR - FPR}")
         print(f"eval results -->   TPR : {TPR_test},  FPR : {FPR_test}, "
-              f"Acc : {ACC_test},  PLR : {PLR_test}, delta : {TPR - FPR}")
+              f"Acc : {ACC_test},  PLR : {PLR_test}, delta : {TPR_test - FPR_test}")
         print("\n\n\n")
         return TPR - FPR
 
@@ -344,7 +344,7 @@ class Metrics_Handler:
         TPR = self.TP / self.CP
         FNR = self.FN / self.CP
         FPR = self.FP / self.CN
-        TNR = self.FN / self.CN
+        TNR = self.TN / self.CN
         ACC = (self.TP + self.TN) / (self.CN + self.CP)
         BAL_ACC = (TPR + TNR) / 2
         PLR = TPR / (1 + FPR)
