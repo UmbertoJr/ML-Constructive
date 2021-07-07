@@ -81,8 +81,8 @@ def train_the_best_configuration(settings):
             # new_plr = (TP)/(TP + FN + 3 * FP)
             # new_plr = TPR / (1 + FPR)
             # new_plr = ACC
-            new_plr = TPR + TNR - FPR - FNR   # provare con TPR - FPR
-            # new_plr = TPR - FPR
+            # new_plr = TPR + TNR - FPR - FNR   # provare con TPR - FPR
+            new_plr = - FPR
             advantage = new_plr - np.average(average_plr)
             average_plr.append(new_plr)
             average_plr.popleft()
@@ -110,11 +110,11 @@ def train_the_best_configuration(settings):
                 if val > max_PLR:
                 # if val < min_FPR:
                     torch.save(model.state_dict(),
-                               dir_ent.folder_train + f'best_model_diff3_{val}.pth')
+                               dir_ent.folder_train + f'best_model_diff5_{val}.pth')
                     best_list.append((iteration, val))
                     max_PLR = val
                     # min_FPR = val
             iteration += 1
 
-    tester.save_csv("looking_diff3")
+    tester.save_csv("looking_diff5")
     print(best_list)

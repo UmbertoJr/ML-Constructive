@@ -16,6 +16,7 @@ class EdgeInsertion:
         cur_city = sol[str(n1)][0]
         partial_tour = [n1, cur_city]
         while True:
+            # print(cur_city, sol)
             if len(sol[str(cur_city)]) == 2:
                 for i in sol[str(cur_city)]:
                     if i not in partial_tour:
@@ -36,6 +37,9 @@ class EdgeInsertion:
         sol_list = [n1, n2]
         while not end:
             for node_connected in sol[str(from_city)]:
+                # print(node_connected, from_city)
+                # print(sol_list)
+                # print(sol)
                 if node_connected not in sol_list:
                     from_city = node_connected
                     sol_list.append(node_connected)

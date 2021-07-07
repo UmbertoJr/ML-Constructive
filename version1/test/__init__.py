@@ -79,8 +79,8 @@ def create_list_to_save(solvers, admin):
 
 def test_metrics_on_TSPLIB(settings):
     # constructive_algs = ['first', 'ML-G', 'ML-SC']
-    # constructive_algs = ['ML-G']
-    constructive_algs = ['ML-SC']
+    constructive_algs = ['ML-G']
+    # constructive_algs = ['ML-SC']
     # constructive_algs = ['first']
     data_p = {'Method': [], 'Position in the CL': [], 'True Positive Rate': []}
     data_n = {'Method': [], 'Position in the CL': [], 'False Positive Rate': []}
@@ -89,8 +89,8 @@ def test_metrics_on_TSPLIB(settings):
     # for prob in [0.71, 0.72, 0.73, 0.74, 0.75, 0.76, 0.78, 0.79, 0.81, 0.82, 0.83, 0.84]:
     # for prob in [0.85, 0.86, 0.87, 0.88, 0.89, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99]:
     # for prob in np.linspace(0.4, 1., num=61):
-    for prob in np.linspace(0.9, 1., num=11):
-    # for prob in [0.99]:
+    # for prob in np.linspace(0.9, 1., num=11):
+    for prob in [0.99]:
         metrics = []
         data = {}
         for solv in constructive_algs:
@@ -107,6 +107,7 @@ def test_metrics_on_TSPLIB(settings):
                 sol_no_pre, time_to_solve = greedy_heuristic.solve(prob)
                 admin.save(sol_no_pre, method=constructive, time=time_to_solve)
 
+                print(admin.gaps[constructive])
                 # data_p, data_n = sc.save_new_data(data_p, data_n, admin.sols[constructive], constructive)
 
             list_to_save = create_list_to_save(constructive_algs, admin)

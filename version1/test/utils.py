@@ -121,8 +121,8 @@ class possible_plots:
         for piece in pieces:
             ordered_points = self.pos[piece]
             plt.plot(ordered_points[:, 0], ordered_points[:, 1], f'b-')
-            # for i in piece:
-            #     plt.annotate(str(i), (self.pos[i, 0], self.pos[i, 1]))
+        for i in range(self.pos.shape[0]):
+            plt.annotate(str(i), (self.pos[i, 0], self.pos[i, 1]))
 
         # plt.title(title)
         plt.savefig(f"./data/images/{title}.png")

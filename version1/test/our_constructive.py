@@ -18,7 +18,9 @@ class PreSelection(EdgeInsertion):
         self.dist_matrix = admin.dist_matrix
         self.pos = admin.pos
         self.num_cit = self.dist_matrix.shape[0]
-        self.k = self.settings.cases_in_L_P
+        # self.k = self.settings.K
+        self.k = 15
+        self.cases_in_LP = self.settings.cases_in_L_P
         self.firstPhaseSolution = {str(i): [] for i in range(self.num_cit)}
         self.visits = {i: 0 for i in range(self.num_cit)}
         self.prob_to_check = prob
@@ -29,9 +31,9 @@ class PreSelection(EdgeInsertion):
         #                                     map_location='cpu'))
         self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_diff.pth',
                                             map_location='cpu'))
-
         # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_low_FPR.pth',
         #                                     map_location='cpu'))
+        self.TP, self.TN, self.FP, self.FN = (1, 1, 0, 0)
 
         if method == "optimal":
             self.ML_check = self.check_EVENT_optimal
@@ -53,7 +55,7 @@ class PreSelection(EdgeInsertion):
         self.edges_inserted = 0
 
     def create_LP(self):
-        len_neig = len(self.neighborhood[0])
+        len_neig = self.cases_in_LP
         LP_v = {i: {} for i in range(len_neig)}
         keys = []
         return_list = []
@@ -61,7 +63,7 @@ class PreSelection(EdgeInsertion):
             for node in range(self.num_cit):
                 h = self.neighborhood[node][in_cl]
                 if (node, h) not in keys and (h, node) not in keys:
-                    LP_v[(node, h)] = self.dist_matrix[node, h]
+                    LP_v[in_cl][(node, h)] = self.dist_matrix[node, h]
                     keys.append((node, h))
 
         for in_cl in range(len_neig):
@@ -80,23 +82,50 @@ class PreSelection(EdgeInsertion):
                 return True
         return False
 
+    def keep_middle(self, solution, level):
+        if type(solution) != list and level < 10:
+            # print("entrato")
+            # print(level)
+            solution = self.middlePhase(solution)
+            self.keep_middle(solution, level + 1)
+        else:
+            return solution
+
     def solve(self):
-        # plotter = possible_plots(self.pos, self.prob_to_check)
+        plotter = possible_plots(self.pos, self.prob_to_check)
         self.firstPhase()
         # print(f"inserted: {self.edges_inserted}, tot cases: {len(self.LP)} ,"
-        #       f"percentage inserted = {self.edges_inserted/len(self.LP)}, "
-        #       f"partial solution found: {self.edges_inserted/ self.num_cit}")
-        solution = self.secondPhase()
-        # plotter.plot_current_sol(self.pos, solution)
-        # plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
+        #       f"percentage inserted = {self.edges_inserted / len(self.LP)}, "
+        #       f"partial solution found: {self.edges_inserted / self.num_cit}, "
+        #       f"TPR : {self.TP / (self.TP + self.FN)}, TNR : {self.TN / (self.TN + self.FP)}, "
+        #       f"FPR : {self.FP / (self.TN + self.FP)}, FNR : {self.FN / (self.TP + self.FN)}")
+        # solution = self.middlePhase(self.firstPhaseSolution)
+        solution = self.secondPhase(self.firstPhaseSolution)
+        plotter.plot_current_sol(self.pos, solution)
+        plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
+        # plotter.plot_situation(solution)
+        # self.keep_middle(solution, 1)
+        # print(solution)
+        # if type(solution) != list:
+            # print('entrato in second phase')
+            # solution = self.middlePhase(solution)
+            # solution = self.secondPhase(solution)
+            # print(solution)
+        solution = self.remove_crosses(solution)
+        plotter.plot_current_sol(self.pos, solution)
+        plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
         # input()
         return solution
 
-    def secondPhase(self):
-        secondPhaseSolution = copy.deepcopy(self.firstPhaseSolution)
+    def secondPhase(self, solution_dict):
+        secondPhaseSolution = copy.deepcopy(solution_dict)
         hub = self.find_hub(dist_matrix=self.dist_matrix)
         free_cities = self.get_free_nodes(secondPhaseSolution)
         LD = self.create_LD(free_cities, hub)
+        # print(free_cities, LD)
+        if len(free_cities) == 2:
+            # secondPhaseSolution = self.add_to_sol(free_cities[0], free_cities[1], secondPhaseSolution)
+            return self.create_solution(free_cities, secondPhaseSolution, self.num_cit)
         for i, j in LD:
             if i not in secondPhaseSolution[str(j)] and j not in secondPhaseSolution[str(i)]:
                 if self.condition_to_enter_sol(i, j, secondPhaseSolution):
@@ -114,6 +143,37 @@ class PreSelection(EdgeInsertion):
                         solution = self.create_solution(free_cities, secondPhaseSolution, self.num_cit)
                         # print(solution)
                         return solution
+
+    def remove_crosses(self, solution):
+        free_cities = self.get_free_nodes(self.firstPhaseSolution)
+        while True:
+            solution, improvement = self.stepModified2opt(solution, free_cities)
+            # print("step")
+            # print(solution)
+            # print(improvement)
+            # print("nuovo")
+            if improvement == 0:
+                return solution
+
+    def stepModified2opt(self, solution, free_cities):
+        for i in range(self.num_cit-1):
+            city1 = solution[i]
+            city1p = solution[i+1]
+            if city1 in free_cities and city1p in free_cities:
+                for j in range(i+1, self.num_cit-1):
+                    city2 = solution[j]
+                    city2p = solution[j+1]
+                    if city2 in free_cities and city2p in free_cities:
+                        old = self.dist_matrix[city1, city1p] + self.dist_matrix[city2, city2p]
+                        new = self.dist_matrix[city1, city2] + self.dist_matrix[city1p, city2p]
+                        if old - new > 0:
+                            # print(city1, city2, i, j, old - new)
+                            # print(solution)
+                            new_sol = solution[:i+1] + solution[i+1: j+1][::-1] + solution[j+1:]
+                            # print(new_sol)
+                            return new_sol, old - new
+
+        return solution, 0
 
     def create_LD(self, free_cities, hub):
         LD_v = {}
@@ -164,10 +224,32 @@ class PreSelection(EdgeInsertion):
         ret = self.net(image_)
         ret = ret.detach().cpu().numpy()[0]
         # print(ret)
+        if self.check_EVENT_optimal(i, j):
+            if ret[1] > self.prob_to_check:
+                self.TP += 1
+            else:
+                self.FN += 1
+        else:
+            if ret[1] > self.prob_to_check:
+                self.FP += 1
+            else:
+                self.TN += 1
+
         return True if ret[1] > self.prob_to_check else False
 
     def check_first(self, i, j):
-        return True if i == self.neighborhood[j][0] or j == self.neighborhood[i][0] else False
+        insert_bool = True if i == self.neighborhood[j][0] or j == self.neighborhood[i][0] else False
+        if self.check_EVENT_optimal(i, j):
+            if insert_bool:
+                self.TP += 1
+            else:
+                self.FN += 1
+        else:
+            if insert_bool:
+                self.FP += 1
+            else:
+                self.TN += 1
+        return insert_bool
 
     def check_second(self, i, j):
         return True if i == self.neighborhood[j][1] or j == self.neighborhood[i][1] else False
