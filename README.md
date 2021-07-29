@@ -1,8 +1,8 @@
-The ML-Greedy Heuristic
+The ML-Constructive Heuristic
 =========
 The general idea
 ----------
-ML-Greedy is the first constructive heuristics 
+ML-Constructive is the first constructive heuristics 
 that scales efficiently using information extracted from historical TSP optimal solutions.
 It exploits machine learning (ML) to learn patterns from previous optimal solutions, 
 then it uses the pattern recognition skills to construct the TSP solution in two phases.
