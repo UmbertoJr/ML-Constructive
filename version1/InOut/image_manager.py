@@ -41,8 +41,8 @@ class DatasetHandler(Dataset):
         self.file = File(f"{self.path}/{self.files_saved[0]}", "r")
         self.image_creator = ImageTrainDataCreator(settings, cases=self.cases)
 
-        self.len = self.find_len()
-        # self.len = 1206121
+        # self.len = self.find_len()
+        self.len = 1206121
         # self.len = 7880633
         self.create_new_data = self.image_creator.create_data_for_all
 

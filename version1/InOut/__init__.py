@@ -4,7 +4,7 @@ from InOut.image_manager import DatasetHandler
 
 
 def test_images_created(settings):
-    generator = DataLoader(DatasetHandler(settings), settings.batch_size)
+    generator = DataLoader(DatasetHandler(settings), settings.bs)
     for data in generator:
         x, y = data["X"], data["Y"]
         print(x.shape)

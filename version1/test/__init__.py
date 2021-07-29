@@ -98,7 +98,7 @@ def test_metrics_on_TSPLIB(settings):
         generator_instance = Read_TSP_Files()
         for problem_data in tqdm(generator_instance.instances_generator(), total=len(generator_instance.files)):
             admin = OutcomeAdmin(problem_data, constructive_algs, settings)
-            # sc = SampleCreator(admin.dist_matrix, admin.optimal_tour)
+            sc = SampleCreator(admin.dist_matrix, admin.optimal_tour)
             data[admin.name] = []
             for constructive in constructive_algs:
                 greedy_heuristic = Constructive(constructive, admin)
@@ -108,7 +108,7 @@ def test_metrics_on_TSPLIB(settings):
                 admin.save(sol_no_pre, method=constructive, time=time_to_solve)
 
                 print(admin.gaps[constructive])
-                # data_p, data_n = sc.save_new_data(data_p, data_n, admin.sols[constructive], constructive)
+                data_p, data_n = sc.save_new_data(data_p, data_n, admin.sols[constructive], constructive)
 
             list_to_save = create_list_to_save(constructive_algs, admin)
             data[admin.name].extend(list_to_save)
@@ -124,12 +124,12 @@ def test_metrics_on_TSPLIB(settings):
                       starting_folder='./data/')
         df_result.to_csv(F'./data/test/reconstruction/CL_{settings.cases_in_L_P}/results_ML-G_prob_{prob}.csv')
 
-    # df_positive = pd.DataFrame(data_p)
-    # df_positive.to_csv('./data/test/reconstruction/positive_cases_ML-G.csv')
-    # print(df_positive.groupby(['Method', 'Position in the CL']).mean())
-    # df_negative = pd.DataFrame(data_n)
-    # df_negative.to_csv('./data/test/reconstruction/negative_cases_ML-G.csv')
-    # print(df_negative.groupby(['Method', 'Position in the CL']).mean())
+    df_positive = pd.DataFrame(data_p)
+    df_positive.to_csv('./data/test/reconstruction/positive_cases_ML-G.csv')
+    print(df_positive.groupby(['Method', 'Position in the CL']).mean())
+    df_negative = pd.DataFrame(data_n)
+    df_negative.to_csv('./data/test/reconstruction/negative_cases_ML-G.csv')
+    print(df_negative.groupby(['Method', 'Position in the CL']).mean())
 
     # df_result = pd.DataFrame.from_dict(data, orient='index', columns=metrics)
     # df_result.loc['mean'] = df_result.mean()

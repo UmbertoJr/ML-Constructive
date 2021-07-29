@@ -28,7 +28,7 @@ operations = {
     "create instances": create_instances,
     "create statistical study instances": create_statistical_study_data,
     "statistical study": stat_plots,
-    'test input images': test_images_created,
+    'test images': test_images_created,
     "test net": check_network,
     # "train": train_the_net,
     "show results train": show_results,
@@ -47,11 +47,12 @@ if __name__ == '__main__':
     # settings.operation = 'create statistical study instances'
     # settings.operation = 'statistical study'
     # settings.operation = 'test net'
+    settings.operation = 'test images'
     # settings.operation = 'train'
     # settings.operation = 'show results train'
     # settings.operation = "get the best network parameters after first train"
     # # settings.operation = "test reconstruction"
-    settings.operation = 'test metrics on TSPLIB'
+    # settings.operation = 'test metrics on TSPLIB'
     # settings.operation = 'test variations'
     print_sett(settings)
     operations[settings.operation](settings)
