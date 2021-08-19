@@ -18,6 +18,7 @@ if __name__ == '__main__':
     operation = parser.parse_args()
     settings = Settings()
     if operation.operation == 'create_instances':
+        settings.operation = "create training instances"
         print_sett(settings)
         print('\nstarting to create training data')
         run_op(settings)

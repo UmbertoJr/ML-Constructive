@@ -37,7 +37,6 @@ operations = {
 
 if __name__ == '__main__':
     settings = Settings()
-    # settings.operation = 'create statistical study instances'
     # settings.operation = 'statistical study'
     # settings.operation = 'test net'
     # settings.operation = 'test images'
