@@ -1,9 +1,8 @@
-import numpy as np
 import torch
-from collections import deque
+import numpy as np
 import pandas as pd
 from tqdm import tqdm
-import seaborn as sbn
+from collections import deque
 from torch.utils.data import DataLoader
 from torch.distributions import Categorical
 
@@ -15,11 +14,10 @@ from test.utils import Logger, Tester_on_eval, Metrics_Handler, compute_metrics
 
 
 def show_results(settings):
-    training_data = {i: [] for i in range(1, 6)}
     for cl_elements in range(1, 5):
         settings.cases_in_L_P = cl_elements
         dir_ent = DirManager(settings)
-        df = pd.read_csv(f"{dir_ent.folder_train}dataset_train_history.csv", index_col=0)
+        df = pd.read_csv(f"{dir_ent.folder_train}training_history.csv", index_col=0)
         df["test TPR"].plot()
         plt.title(f"cl {cl_elements}")
         plt.show()
@@ -35,22 +33,22 @@ def train_the_best_configuration(settings):
     model = resnet_for_the_tsp(settings)
     model = model.to(device)
     model.apply(model.weight_init)
-    # model.load_state_dict(torch.load(f'./data/net_weights/CL_2/best_model_RL_v8_PLR.pth'))
 
-    # loss function
+    # loss function one
     criterion = torch.nn.CrossEntropyLoss()
     log_str_fun = Logger.log_pred
     tester = Tester_on_eval(settings, dir_ent, log_str_fun, settings.cases_in_L_P, device)
+
+    # optimizers
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     optimizer2 = torch.optim.Adam(model.parameters(), lr=0.001)
 
+    # initialize variables
     iteration = 0
-    print(f'\n\nrunning 1 epochs for case with {settings.cases_in_L_P} neigs in L_P ...')
     mh_off = Metrics_Handler()
     best_list = []
-    max_deelta = 0
-    entropy = 0
-    average_plr = deque([0.3 for _ in range(100)])
+    best_delta = 0
+    average_delta = deque([0.5 for _ in range(100)])
     for epoch in range(1):
         generator = DatasetHandler(settings)
         data_logger = tqdm(DataLoader(generator, batch_size=settings.bs, drop_last=True))
@@ -74,24 +72,20 @@ def train_the_best_configuration(settings):
             if iteration > 2000:
                 online_data_generator = OnlineDataSetHandler(settings, model)
                 x_online, y_online = online_data_generator.get_data()
-                predictions2 = model(x)
+                predictions2 = model(x_online)
                 dist = Categorical(probs=predictions2)
                 actions = dist.sample()
                 log_probs = dist.log_prob(actions)
-                # entropy += dist.entropy().mean().detach()
 
-                TP, FP, TN, FN = compute_metrics(actions.detach(), y.detach(), rl_bool=True)
+                TP, FP, TN, FN = compute_metrics(actions.detach(), y_online.detach(), rl_bool=True)
                 mh_online = Metrics_Handler()
                 TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_online.update_metrics(TP, FP, TN, FN)
 
-                # new_plr = (TP)/(TP + FN + 3 * FP)
-                # new_plr = TPR / (1 + FPR)
-                # new_plr = ACC
-                # new_plr = TPR + TNR - FPR - FNR   # provare con TPR - FPR
-                new_plr = TPR - FPR
-                advantage = new_plr - np.average(average_plr)
-                average_plr.append(new_plr)
-                average_plr.popleft()
+                new_plr = TPR + TNR - FPR - FNR
+                advantage = new_plr - np.average(average_delta)
+                average_delta.append(new_plr)
+                average_delta.popleft()
+
                 advantage_t = torch.FloatTensor([advantage]).to(device).detach()
                 actor_loss = (log_probs * advantage_t).mean()
 
@@ -101,27 +95,19 @@ def train_the_best_configuration(settings):
                 log_str = log_str_fun(advantage, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
                 data_logger.set_postfix_str(log_str)
 
-            # loss = loss1.item()
-            # loss = loss / settings.bs
-            # TP, FP, TN, FN, CP, CN = compute_metrics(predictions, y)
-
-            # TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh.update_metrics(TP, FP, TN, FN, CP, CN)
-            # log_str = log_str_fun(loss1, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
-            # data_logger.set_postfix_str(log_str)
-
-            if iteration % 1000 == 0 and iteration != 0:
+            if iteration % 500 == 0 and iteration != 0:
                 torch.save(model.state_dict(),
                            dir_ent.folder_train + 'checkpoint.pth')
                 val = tester.test(TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, iteration)
-                if val > max_delta:
+                if val > best_delta:
                     torch.save(model.state_dict(),
                                dir_ent.folder_train + f'diff_{val}.pth')
                     torch.save(model.state_dict(),
                                dir_ent.folder_train + f'best_diff.pth')
                     best_list.append((iteration, val))
-                    max_delta = val
-                    # min_FPR = val
+                    best_delta = val
+
             iteration += 1
 
-    tester.save_csv("looking_diff5")
+    tester.save_csv("training_history")
     print(best_list)
