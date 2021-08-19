@@ -242,44 +242,80 @@ class ImageTestCreator(ImageCreator):
                                    num_pixel=self.num_pixel, raggio=self.raggio_nodo)
 
         distance_one = pixel_man.pixel_distance()
-        too_close = True if self.dist_matrix[city1, city2] < 3 * distance_one else False
+        too_close = True if self.dist_matrix[city1, city2] < distance_one else False
 
-        red = (intensity, 0, 0)
-        green = (0, intensity, 0)
-        blue = (0, 0, intensity)
-        im = np.zeros((self.num_pixel, self.num_pixel, 3), np.uint8)
+        # red = (intensity, 0, 0)
+        # green = (0, intensity, 0)
+        # blue = (0, 0, intensity)
+        im_red = np.zeros((self.num_pixel, self.num_pixel, 1), np.uint8)
+        im_green = np.zeros((self.num_pixel, self.num_pixel, 1), np.uint8)
+        im_blue = np.zeros((self.num_pixel, self.num_pixel, 1), np.uint8)
 
         # color the considered edge in the image
         c_x, c_y = pixel_man.pixel_pos(vec=pos_go[0])
-        cv.circle(im, (c_x, c_y), self.raggio_nodo, green,
+        cv.circle(im_green, (c_x, c_y), self.raggio_nodo, intensity,
                   thickness=-1, lineType=cv.LINE_AA)
 
         t_x, t_y = pixel_man.pixel_pos(vec=pos_go[1])
-        cv.circle(im, (t_x, t_y), self.raggio_nodo, green,
+        cv.circle(im_green, (t_x, t_y), self.raggio_nodo, intensity,
                   thickness=-1, lineType=cv.LINE_AA)
 
-        im = cv.line(im, (c_x, c_y), (t_x, t_y), green, self.spess_edge,
-                     lineType=cv.LINE_AA)
+        im_green = cv.line(im_green, (c_x, c_y), (t_x, t_y), intensity, self.spess_edge,
+                           lineType=cv.LINE_AA)
 
         for j in range(pos_go.shape[0]):
             c_x, c_y = pixel_man.pixel_pos(vec=pos_go[j])
-            cv.circle(im, (c_x, c_y), self.raggio_nodo, red,
+            cv.circle(im_red, (c_x, c_y), self.raggio_nodo, intensity,
                       thickness=-1, lineType=cv.LINE_AA)
 
         for i, j in enumerate(p_go):
-            for h in p_sol[str(j)]:
-                if h in neig:
-                    c_x, c_y = pixel_man.pixel_pos(vec=pos_go[i])
-                    cv.circle(im, (c_x, c_y), self.raggio_nodo, blue,
-                              thickness=-1, lineType=cv.LINE_AA)
-                    ind = np.argwhere(p_go == h)[0][0]
-                    h_x, h_y = pixel_man.pixel_pos(vec=pos_go[ind])
-                    cv.circle(im, (h_x, h_y), self.raggio_nodo, blue,
-                              thickness=-1, lineType=cv.LINE_AA)
-                    im = cv.line(im, (c_x, c_y), (h_x, h_y), blue, self.spess_edge,
-                                 lineType=cv.LINE_AA)
-
-        return normalize_image(im), too_close
+            if str(j) in p_sol.keys():
+                for h in p_sol[str(j)]:
+                    if h in neig:
+                        c_x, c_y = pixel_man.pixel_pos(vec=pos_go[i])
+                        cv.circle(im_blue, (c_x, c_y), self.raggio_nodo, intensity,
+                                  thickness=-1, lineType=cv.LINE_AA)
+                        ind = np.argwhere(p_go == h)[0][0]
+                        h_x, h_y = pixel_man.pixel_pos(vec=pos_go[ind])
+                        cv.circle(im_blue, (h_x, h_y), self.raggio_nodo, intensity,
+                                  thickness=-1, lineType=cv.LINE_AA)
+                        im_blue = cv.line(im_blue, (c_x, c_y), (h_x, h_y), intensity,
+                                          self.spess_edge, lineType=cv.LINE_AA)
+        # im = np.zeros((self.num_pixel, self.num_pixel, 3), np.uint8)
+        #
+        # # color the considered edge in the image
+        # c_x, c_y = pixel_man.pixel_pos(vec=pos_go[0])
+        # cv.circle(im, (c_x, c_y), self.raggio_nodo, green,
+        #           thickness=-1, lineType=cv.LINE_AA)
+        #
+        # t_x, t_y = pixel_man.pixel_pos(vec=pos_go[1])
+        # cv.circle(im, (t_x, t_y), self.raggio_nodo, green,
+        #           thickness=-1, lineType=cv.LINE_AA)
+        #
+        # im = cv.line(im, (c_x, c_y), (t_x, t_y), green, self.spess_edge,
+        #              lineType=cv.LINE_AA)
+        #
+        # for j in range(pos_go.shape[0]):
+        #     c_x, c_y = pixel_man.pixel_pos(vec=pos_go[j])
+        #     cv.circle(im, (c_x, c_y), self.raggio_nodo, red,
+        #               thickness=-1, lineType=cv.LINE_AA)
+        #
+        # for i, j in enumerate(p_go):
+        #     for h in p_sol[str(j)]:
+        #         if h in neig:
+        #             c_x, c_y = pixel_man.pixel_pos(vec=pos_go[i])
+        #             cv.circle(im, (c_x, c_y), self.raggio_nodo, blue,
+        #                       thickness=-1, lineType=cv.LINE_AA)
+        #             ind = np.argwhere(p_go == h)[0][0]
+        #             h_x, h_y = pixel_man.pixel_pos(vec=pos_go[ind])
+        #             cv.circle(im, (h_x, h_y), self.raggio_nodo, blue,
+        #                       thickness=-1, lineType=cv.LINE_AA)
+        #             im = cv.line(im, (c_x, c_y), (h_x, h_y), blue, self.spess_edge,
+        #                          lineType=cv.LINE_AA)
+        im = np.concatenate([im_blue, im_green, im_red], axis=-1)
+        im = normalize_image(im)
+        # plot_single_cv(im)
+        return im, too_close
 
 
 class output_visual_checker:

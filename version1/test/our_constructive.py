@@ -3,7 +3,7 @@ import torch
 import numpy as np
 from test.utils import possible_plots
 from model.network import resnet_for_the_tsp
-from InOut.utils import plot_cv, to_torch
+from InOut.utils import plot_cv, to_torch, plot_single_cv
 from InOut.image_creator import ImageTestCreator
 from test.classic_constructive import EdgeInsertion
 
@@ -12,14 +12,13 @@ verbose = False
 
 class PreSelection(EdgeInsertion):
 
-    def __init__(self, admin, prob=0.5, method='our'):
+    def __init__(self, admin, prob=1e-3, method='our'):
         self.optimal_tour = admin.optimal_tour
         self.settings = admin.settings
         self.dist_matrix = admin.dist_matrix
         self.pos = admin.pos
         self.num_cit = self.dist_matrix.shape[0]
-        # self.k = self.settings.K
-        self.k = 15
+        self.k = self.settings.K
         self.cases_in_LP = self.settings.cases_in_L_P
         self.firstPhaseSolution = {str(i): [] for i in range(self.num_cit)}
         self.visits = {i: 0 for i in range(self.num_cit)}
@@ -27,13 +26,10 @@ class PreSelection(EdgeInsertion):
         self.image_creator = ImageTestCreator(self.settings, self.pos)
         self.net = resnet_for_the_tsp(admin.settings)
         self.net.to('cpu')
-        # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_2/best_model_RL_v2_PLR_new.pth',
-        #                                     map_location='cpu'))
         self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_diff.pth',
                                             map_location='cpu'))
-        # self.net.load_state_dict(torch.load(f'./data/net_weights/CL_{admin.settings.cases_in_L_P}/best_model_low_FPR.pth',
-        #                                     map_location='cpu'))
-        self.TP, self.TN, self.FP, self.FN = (1, 1, 0, 0)
+        self.TP, self.TN, self.P, self.N = ([0, 0] for _ in range(4))
+        self.cases = ["first", "second"]
 
         if method == "optimal":
             self.ML_check = self.check_EVENT_optimal
@@ -92,28 +88,31 @@ class PreSelection(EdgeInsertion):
             return solution
 
     def solve(self):
-        plotter = possible_plots(self.pos, self.prob_to_check)
         self.firstPhase()
-        # print(f"inserted: {self.edges_inserted}, tot cases: {len(self.LP)} ,"
-        #       f"percentage inserted = {self.edges_inserted / len(self.LP)}, "
-        #       f"partial solution found: {self.edges_inserted / self.num_cit}, "
-        #       f"TPR : {self.TP / (self.TP + self.FN)}, TNR : {self.TN / (self.TN + self.FP)}, "
-        #       f"FPR : {self.FP / (self.TN + self.FP)}, FNR : {self.FN / (self.TP + self.FN)}")
+        if verbose:
+            plotter = possible_plots(self.pos, self.prob_to_check)
+            print(f"inserted: {self.edges_inserted}, tot cases: {len(self.LP)} \n"
+                  f"percentage inserted = {self.edges_inserted / len(self.LP)} \n"
+                  f"partial solution found: {self.edges_inserted / self.num_cit} \n"
+                  f"TPR0 : {self.TP[0] / self.P[0]}, FPR0 : {(self.N[0] - self.TN[0]) / self.N[0]} , "
+                  f"ACC0 : {(self.TP[0] + self.TN[0])/(self.P[0] + self.N[0])} \n"
+                  f"TPR1 : {self.TP[1] / self.P[1]}, FPR1 : {(self.N[1] - self.TN[1]) / self.N[1]}, "
+                  f"ACC1 : {(self.TP[1] + self.TN[1])/(self.P[1] + self.N[1])} \n")
         # solution = self.middlePhase(self.firstPhaseSolution)
         solution = self.secondPhase(self.firstPhaseSolution)
-        plotter.plot_current_sol(self.pos, solution)
-        plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
+        # plotter.plot_current_sol(self.pos, solution)
+        # plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
         # plotter.plot_situation(solution)
         # self.keep_middle(solution, 1)
         # print(solution)
         # if type(solution) != list:
-            # print('entrato in second phase')
-            # solution = self.middlePhase(solution)
-            # solution = self.secondPhase(solution)
-            # print(solution)
-        solution = self.remove_crosses(solution)
-        plotter.plot_current_sol(self.pos, solution)
-        plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
+        # print('entrato in second phase')
+        # solution = self.middlePhase(solution)
+        # solution = self.secondPhase(solution)
+        # print(solution)
+        # solution = self.remove_crosses(solution)
+        # plotter.plot_current_sol(self.pos, solution)
+        # plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
         # input()
         return solution
 
@@ -190,6 +189,7 @@ class PreSelection(EdgeInsertion):
             if self.condition_to_enter_sol(i, j, self.firstPhaseSolution):
                 self.add_visit(i, j)
                 if self.ML_check(i, j):
+                    # print("inserted", i, j)
                     self.firstPhaseSolution = self.add_to_sol(i, j, self.firstPhaseSolution)
                     self.edges_inserted += 1
                 # plotter.plot_new_selection(self.firstPhaseSolution, i, j)
@@ -216,39 +216,66 @@ class PreSelection(EdgeInsertion):
 
     def check_EVENT_with_net(self, i, j):
         image, too_close = self.image_creator.get_image(i, j, self.firstPhaseSolution)
+        # plot_single_cv(image)
         image = np.stack([image, image], axis=0)
         if too_close:
+            self.update_metrics_run(i, j, [0., 1.])
             return True
         image_ = to_torch(image).to('cpu')
         self.net.eval()
         ret = self.net(image_)
-        ret = ret.detach().cpu().numpy()[0]
         # print(ret)
-        if self.check_EVENT_optimal(i, j):
-            if ret[1] > self.prob_to_check:
-                self.TP += 1
-            else:
-                self.FN += 1
-        else:
-            if ret[1] > self.prob_to_check:
-                self.FP += 1
-            else:
-                self.TN += 1
+        ret = ret.detach().cpu().numpy()[0]
+        self.update_metrics_run(i, j, ret)
+        # return True if ret[1] > self.prob_to_check else False
+        return True if ret[0] < self.prob_to_check else False
 
-        return True if ret[1] > self.prob_to_check else False
+    def update_metrics_run(self, i, j, ret):
+        # print(self.prob_to_check, ret)
+        if self.check_EVENT_optimal(i, j):
+            # print('giusto')
+            # if ret[1] > self.prob_to_check:
+            if ret[0] < self.prob_to_check:
+                if self.check_first(i, j):
+                    self.TP[0] += 1
+                    self.P[0] += 1
+                else:
+                    self.TP[1] += 1
+                    self.P[1] += 1
+            else:
+                if self.check_first(i, j):
+                    self.P[0] += 1
+                else:
+                    self.P[1] += 1
+        else:
+            # print('sbagliato')
+            # if ret[1] > self.prob_to_check:
+            if ret[0] < self.prob_to_check:
+                if self.check_first(i, j):
+                    self.N[0] += 1
+                else:
+                    self.N[1] += 1
+            else:
+                if self.check_first(i, j):
+                    self.TN[0] += 1
+                    self.N[0] += 1
+                else:
+                    self.TN[1] += 1
+                    self.N[1] += 1
+        # print(self.TP, self.P, self.TN, self.N)
 
     def check_first(self, i, j):
         insert_bool = True if i == self.neighborhood[j][0] or j == self.neighborhood[i][0] else False
-        if self.check_EVENT_optimal(i, j):
-            if insert_bool:
-                self.TP += 1
-            else:
-                self.FN += 1
-        else:
-            if insert_bool:
-                self.FP += 1
-            else:
-                self.TN += 1
+        # if self.check_EVENT_optimal(i, j):
+        # if insert_bool:
+        #     self.TP += 1
+        # else:
+        #     self.FN += 1
+        # else:
+        #     if insert_bool:
+        #         self.FP += 1
+        #     else:
+        #         self.TN += 1
         return insert_bool
 
     def check_second(self, i, j):

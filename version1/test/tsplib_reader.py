@@ -1,4 +1,6 @@
 import os
+
+import matplotlib.pyplot as plt
 import pyproj as proj
 from typing import List
 
@@ -9,6 +11,7 @@ from concorde.tsp import TSPSolver
 from torch.utils.data import Dataset
 from numpy.core._multiarray_umath import ndarray
 from InOut.image_creator import ImageTrainDataCreator
+# from test.utils import possible_plots
 
 # setup your projections
 crs_wgs = proj.Proj(init='epsg:4326')  # assuming you're using WGS84 geographic
@@ -25,7 +28,7 @@ class Read_TSP_Files:
 
     def __init__(self):
         self.path = "./data/test/TSPLIB/"
-        self.files = [
+        self.files = [ #"Luca22.tsp"
             "kroA100.tsp", "kroC100.tsp", "rd100.tsp",
             "eil101.tsp", "lin105.tsp", "pr107.tsp", "pr124.tsp", "bier127.tsp",
             "ch130.tsp", "pr136.tsp", "gr137.tsp", "pr144.tsp", "kroA150.tsp", "pr152.tsp", "u159.tsp", "rat195.tsp",
@@ -167,11 +170,12 @@ class EvalGenerator(Dataset):
     def __init__(self, settings):
         super(EvalGenerator, self).__init__()
         self.reader = Read_TSP_Files()
-        self.bs_test = 425
+        self.bs_test = 128
         self.image_creator = ImageTrainDataCreator(settings)
         self.create_new_data = self.image_creator.create_data_for_all
-        self.len = self.find_len()
+        # self.len = self.find_len()
         # self.len = 31025
+        self.len = 31228
         self.create_testdata()
 
     def __len__(self):
@@ -179,6 +183,7 @@ class EvalGenerator(Dataset):
 
     def create_testdata(self):
         all_input, all_output = [], []
+        all_output2 = []
         for data in self.reader.instances_generator():
             number_cities, pos, dist_matrix, name, optimal_tour = data
             data_to_give = [number_cities, pos, optimal_tour]
@@ -210,4 +215,15 @@ def test_TSPLIB_generator(settings):
     for problem_data in instances_generator.instances_generator():
         npoints, pos, dist_, name, opt_tour = problem_data
         print(name, npoints, pos.shape, dist_.shape, instances_generator.distance)
+        np.savetxt("dist_matrix.csv", dist_, delimiter=",")
+
+        # plotter = possible_plots(pos, 0.)
+        # plotter.plot_current_sol(pos, opt_tour)
+        # plt.savefig('LucaOpt.png')
+        # print(dist_)
+        print(opt_tour)
+
         print()
+
+if __name__ == '__main__':
+    test_TSPLIB_generator(None)

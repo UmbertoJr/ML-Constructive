@@ -1,11 +1,10 @@
-from InOut import test_images_created
 from InOut.tools import print_sett
+from InOut import test_images_created
+from model.network import check_network
+from test import test_metrics_on_TSPLIB
 from instances_generator.test import stat_plots
 from instances_generator import create_instances, create_statistical_study_data
-# from model import train_the_net
-from model.network import check_network
 from test.looking_for_best_configuration import show_results, train_the_best_configuration
-from test import test_on_constr, test_metrics_on_TSPLIB, average_on_different_checks
 
 
 class Settings:
@@ -17,28 +16,22 @@ class Settings:
     total_number_instances: int = 40960
     num_instances_x_file: int = 1280
     cases_in_L_P: int = 2
-    last_file: int = 30 #50
-    bs: int = 256  # 256
+    last_file: int = 30
+    bs: int = 256
 
     def __init__(self):
         pass
 
 
 operations = {
-    "create instances": create_instances,
-    "create statistical study instances": create_statistical_study_data,
+    "create training instances": create_instances,
+    "create evaluation instances": create_statistical_study_data,
     "statistical study": stat_plots,
     'test images': test_images_created,
     "test net": check_network,
-    # "train": train_the_net,
+    "train": train_the_best_configuration,
     "show results train": show_results,
-    "get the best network parameters after first train": train_the_best_configuration,
-    # "test": test_on_eval,
-    # "test TSPLIB files": test_TSPLIB_generator,
-    "test reconstruction": test_on_constr,
-    "test metrics on TSPLIB": test_metrics_on_TSPLIB,
-    # "check distributions": check_distributions_across_different_heuristics,
-    "test variations": average_on_different_checks,
+    "test on TSPLIB": test_metrics_on_TSPLIB,
     "": None
 }
 
@@ -47,12 +40,11 @@ if __name__ == '__main__':
     # settings.operation = 'create statistical study instances'
     # settings.operation = 'statistical study'
     # settings.operation = 'test net'
-    settings.operation = 'test images'
-    # settings.operation = 'train'
+    # settings.operation = 'test images'
+    settings.operation = 'train'
     # settings.operation = 'show results train'
     # settings.operation = "get the best network parameters after first train"
     # # settings.operation = "test reconstruction"
-    # settings.operation = 'test metrics on TSPLIB'
-    # settings.operation = 'test variations'
+    settings.operation = 'test on TSPLIB'
     print_sett(settings)
     operations[settings.operation](settings)

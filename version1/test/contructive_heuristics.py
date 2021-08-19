@@ -38,5 +38,5 @@ class Constructive:
         def our_method(prob):
             solver = PreSelection(self.admin, prob=prob, method=method)
             start = time()
-            return solver.solve(), time() - start
+            return solver.solve(), time() - start, solver
         return our_method

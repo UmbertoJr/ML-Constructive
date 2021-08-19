@@ -154,6 +154,18 @@ class SampleCreator:
         return data_p, data_n
 
 
+class Sampler:
+    def __init__(self):
+        self.samples = {neig: {metric: 0 for metric in ["P", "N", "TP", "TN"]} for neig in ["first", "second"]}
+
+    def save_from_constructor(self, P, N, TP, TN, cases):
+        for i, case in enumerate(cases):
+            self.samples[case]["P"] += P[i]
+            self.samples[case]["N"] += N[i]
+            self.samples[case]["TP"] += TP[i]
+            self.samples[case]["TN"] += TN[i]
+
+
 def plot_histogram(data, case):
     df = pd.DataFrame(data)
     ax = sbn.barplot(x='Position in the CL', y=case, hue='Method', data=df, order=['1', '2', '3', '4', '5', '>5'])

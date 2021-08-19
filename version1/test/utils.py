@@ -81,7 +81,7 @@ class possible_plots:
         self.step = 0
         self.pos = pos
         self.prob = prob
-        create_folder(folder_name_to_create=f"./data/images/", starting_folder="./data/test/")
+        # create_folder(folder_name_to_create=f"./data/images/", starting_folder="./data/test/")
 
     def plot_edge(self, x, y, c='chartreuse', style='-'):
         nodes = [x, y]
@@ -91,7 +91,7 @@ class possible_plots:
         self.plot_situation(pre_solution, title=f"added {x} {y}")
         self.plot_edge(x, y)
         plt.title(f"selection nodes {x, y}")
-        plt.savefig(f"./data/images/prob_{self.prob}/step{self.step}.png")
+        # plt.savefig(f"./data/images/prob_{self.prob}/step{self.step}.png")
         self.step += 1
 
     def final_situation(self, sol):
@@ -173,9 +173,12 @@ class possible_plots:
     @staticmethod
     def plot_current_sol(pos, sol):
         plt.scatter(pos[:, 0], pos[:, 1], marker='o', c=mcd.CSS4_COLORS['cyan'])
-        sol_p = sol + [sol[0]]
+        sol_p = list(sol) + [sol[0]]
+        print(sol_p)
         ordered_points = pos[sol_p]
         plt.plot(ordered_points[:, 0], ordered_points[:, 1], f'r-')
+        for i in range(pos.shape[0]):
+            plt.annotate(str(i + 1), (pos[i, 0], pos[i, 1]))
         # plt.show()
 
 
@@ -212,10 +215,11 @@ class Tester_on_eval:
 
     def test(self, tpr, fnr, fpr, tnr, acc, bal_acc, plr, bal_plr, iteration_train):
 
+        self.net.load_state_dict(torch.load(self.dir_ent.folder_train + f'checkpoint.pth',
+                                            map_location='cpu'))
+
         def check_eval():
             generator = DatasetHandler(self.settings, path='./data/eval/')
-            self.net.load_state_dict(torch.load(self.dir_ent.folder_train + f'checkpoint.pth',
-                                                map_location='cpu'))
             data_logger = DataLoader(generator, batch_size=self.settings.bs, drop_last=True)
             mht = Metrics_Handler()
             TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = (0 for i in range(8))
@@ -239,12 +243,13 @@ class Tester_on_eval:
             generator2 = EvalGenerator(self.settings)
             data_logger2 = DataLoader(generator2, batch_size=generator2.bs_test, drop_last=True)
             mht = Metrics_Handler()
-            TPR_test, FNR_test, FPR_test, TNR_test, ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test = (0 for i in
+            TPR_test, FNR_test, FPR_test, TNR_test, ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test = ([0, 0] for _ in
                                                                                                       range(8))
             self.net.eval()
             with torch.no_grad():
                 for iter, data in enumerate(data_logger2):
                     x, y = data["X"], data["Y"]
+                    # pos = data["position"]
                     x = x.to(self.device)
                     y = y.to(self.device)
 
@@ -293,6 +298,7 @@ class Tester_on_eval:
               f"Acc : {ACC_test},  PLR : {PLR_test}, delta : {TPR_test - FPR_test}")
         print("\n\n\n")
         return TPR - FPR
+        # return - FPR
 
     def save_csv(self, name):
         self.df = pd.DataFrame(data=self.df_data, index=self.iter_list)
@@ -306,9 +312,10 @@ class Tester_on_eval:
 def compute_metrics(preds, y, rl_bool=False):
     preds = preds.cpu().numpy()
     y = y.cpu().numpy()
-    TP, FP, TN, FN, CP, CN = (0. for _ in range(6))
+    TP, FP, TN, FN, CP, CN = (0 for _ in range(6))
     for i in range(preds.shape[0]):
         if not rl_bool:
+            # best = 1 if preds[i, 1] > 0.99 else 0
             best = np.argsort(preds[i])[::-1][:1][0]
         else:
             best = preds[i]
@@ -327,11 +334,11 @@ def compute_metrics(preds, y, rl_bool=False):
 
 class Metrics_Handler:
     def __init__(self):
-        self.CP = 1
-        self.CN = 1
-        self.TP = 1
+        self.CP = 0
+        self.CN = 0
+        self.TP = 0
         self.FP = 0
-        self.TN = 1
+        self.TN = 0
         self.FN = 0
 
     def update_metrics(self, tp, fp, tn, fn):
