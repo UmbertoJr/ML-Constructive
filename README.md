@@ -97,15 +97,22 @@ cd ML-greedy/version1/
 Dataset creation
 ------
 The data creation it takes about 3 days.
+After installing [Pyconcorde](https://github.com/jvkersch/pyconcorde) 
+and the other dependencies correctly.
+The folders and files containing the data for training 
+and evaluation will be created with the following command. 
+The Test instances are already located in the folder "version1/data/test".
+
 ```shell
 python cli.py --operation create_instances
 ```
 
 Statistical test
 ----
-
+To reproduce the statistical results 
+shown in Mele *et al.* [1], the following command is employed.
 ```shell
-python cli.py --operation show_stats
+python cli.py --operation statistical_study
 ```
 
 Train on random instances
@@ -117,7 +124,7 @@ python cli.py --operation train
 Test on TSPLIB instances
 ----
 ```shell
-python cli.py --operation test_on_TSPLIB
+python cli.py --operation solve_TSPLIB
 ```
 
 References
