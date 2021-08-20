@@ -40,7 +40,7 @@ For more details we refer to Mele *et al.* [1].
 The second (and last) phase of ML-C uses the Clarke-Wright heuristic 
 to complete the TSP tour (Figure 2). 
 Several approaches are possible for completing the tour.
-In Vitali et al. [2], for example,
+In Vitali *et al.* [2], for example,
 a third phase employing local search techniques on the edges inserted 
 during the second phase is suggested.
 
@@ -96,7 +96,7 @@ cd ML-greedy/version1/
 
 Dataset creation
 ------
-The data creation it takes about 3 days
+The data creation it takes about 3 days.
 ```shell
 python cli.py --operation create_instances
 ```

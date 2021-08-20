@@ -1,3 +1,7 @@
-/version1/data/
+/version1/data/images
+/version1/data/net_weights
+/version1/data/test/images
+/version1/data/test/reconstruction
+/version1/data/train
 __pycache__/
 .idea/
