@@ -2,10 +2,10 @@ The ML-Constructive Heuristic
 =========
 The general idea
 ----------
-ML-Constructive is the first constructive heuristics 
-that scales efficiently using information extracted from historical TSP optimal solutions.
-It exploits machine learning (ML) to learn patterns from previous optimal solutions, 
-then it uses the pattern recognition skills to construct the TSP solution in two phases.
+ML-Constructive (ML-C) is the first constructive heuristics 
+that scales efficiently using information extracted from historical TSP optimal tours.
+ML-C exploits machine learning (ML) to learn common patterns from known optimal solutions provided by a perfect Oracle ().
+Then, ML-C uses such learnt ability to construct TSP tours in two phases.
 
 The first phase uses ML to filter some promising edges from the shortest edges connecting each vertex.
 As shown in Figure 1.
@@ -21,7 +21,7 @@ For more details see [1].
 The second phase uses the Clarke-Wright heuristic to complete the TSP tour as in Figure 2. 
 
 <p align="center">
-	<img src="figures\firstphase.png" alt="example plot"/>
+	<img src="figures\secondphase.png" alt="example plot"/>
 </p>
 
 
@@ -37,19 +37,27 @@ Papers
 Mele, U. J., Gambardella, L. M., and Montemanni, R. (2021).
 A New Constructive Heuristic driven by Machine Learning for the traveling Salesman Problem.
 
+<a id="1">[2]</a>
+Mele, U. J., Gambardella, L. M., and Montemanni, R. (2021).
+A New Constructive Heuristic driven by Machine Learning for the traveling Salesman Problem.
 
-<a id="1">[2]</a> 
+<a id="1">[3]</a> 
 Mele, U. J., Gambardella, L. M., and Montemanni, R. (2021). 
 Machine learning approaches for the traveling salesman problem: A survey.
 In Proceedings of the 8th International Conference on Industrial Engineering and Applications (ICIEA 2021).
 Association for Computing Machinery.
 
-<a id="1">[3]</a>
+<a id="1">[4]</a>
 Mele, U. J., Chou, X., Gambardella, L. M., and Montemanni, R. (2021).
 Reinforcement Learning and additional rewards for the traveling salesman problem.
 In Proceedings of the 8th International Conference on Industrial Engineering and Applications (ICIEA 2021).
 Association for Computing Machinery.
 
+
+Dependecies
+-----
+Python>=3.5
+Pytorch>=1.1
 
 How to install?
 ------
@@ -59,13 +67,10 @@ git clone https://github.com/########
 cd ML-greedy/version1/
 ```
 
-Requirements
-------
-
 
 Dataset creation
 ------
-The data creation it takes 12 hours for the 
+The data creation it takes about 3 days
 ```shell
 python cli.py --operation create_instances
 ```
