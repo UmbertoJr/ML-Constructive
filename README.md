@@ -29,25 +29,33 @@ Three channels are utilized to represent a local view of the problem.
 The first one shows the vertices in the local view,
 the second one shows the new edge to be inserted, 
 while the third channel shows the existing edges available in the current partial solution.
+For more details we refer to Mele *et al.* [1]. 
 
 <p align="center">
 	<img src="figures\channels.png" alt="example plot"/>
+    <em>Figure 2</em>
 </p>
 
-For more details we refer to Mele *et al.* [1]. 
 
-The second phase uses the Clarke-Wright heuristic to complete the TSP tour as in Figure 2. 
+The second (and last) phase of ML-C uses the Clarke-Wright heuristic 
+to complete the TSP tour (Figure 2). 
+Several approaches are possible for completing the tour.
+In Vitali et al. [2], for example,
+a third phase employing local search techniques on the edges inserted 
+during the second phase is suggested.
 
 <p align="center">
 	<img src="figures\secondphase.png" alt="example plot"/>
+    <em>Figure 3</em>
 </p>
 
+The approach shows good result on TSPLIB testing instances up to 1748 vertices.
+ML-C is effectively able to combine classical heuristic methods with machine learning 
+by learning from small instances and scaling the knowledge to real case scenario.
 
-
-
-For the curious readers, we suggest to look through the survey on ML approaches for the TSP [2], 
+For the curious readers, we suggest to look through our survey on ML approaches for the TSP [3], 
 and an unusual example on how to combine combinatorial optimization concepts 
-with the reward function of reinforcement learning setups for the TSP [3]. 
+with the reward function of reinforcement learning setups for the TSP [4]. 
 
 
 
