@@ -12,7 +12,7 @@ As shown in Figure 1.
 
 
 <p align="center">
-	<img src="firstphase.png" alt="example plot"/>
+	<img src="figure/firstphase.png" alt="example plot"/>
 </p>
 
 

@@ -44,6 +44,6 @@ if __name__ == '__main__':
     # settings.operation = 'show results train'
     # settings.operation = "get the best network parameters after first train"
     # # settings.operation = "test reconstruction"
-    settings.operation = 'test on TSPLIB'
+    # settings.operation = 'test on TSPLIB'
     print_sett(settings)
     operations[settings.operation](settings)
