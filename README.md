@@ -12,7 +12,7 @@ As shown in Figure 1.
 
 
 <p align="center">
-	<img src="figure/firstphase.png" alt="example plot"/>
+	<img src="figures\firstphase.png" alt="example plot"/>
 </p>
 
 
@@ -21,7 +21,7 @@ For more details see [1].
 The second phase uses the Clarke-Wright heuristic to complete the TSP tour as in Figure 2. 
 
 <p align="center">
-	<img src="firstphase.png" alt="example plot"/>
+	<img src="figures\firstphase.png" alt="example plot"/>
 </p>
 
 
