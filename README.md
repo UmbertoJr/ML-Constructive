@@ -18,18 +18,23 @@ between vertices that are at most second closest to each other.
 
 <p align="center">
 	<img src="figures\firstphase.png" alt="example plot"/>
+    <em>Figure 1</em>
 </p>
 
 Such partial solution enables reducing the construction time for solving, 
 meanwhile smartly selecting the most promising edges.
-For more details see [1]. 
-
-
+The ML system chooses which edges to include in the solution and which not by employing 
+image processing.
+Three channels are utilized to represent a local view of the problem.
+The first one shows the vertices in the local view,
+the second one shows the new edge to be inserted, 
+while the third channel shows the existing edges available in the current partial solution.
 
 <p align="center">
 	<img src="figures\channels.png" alt="example plot"/>
 </p>
 
+For more details we refer to Mele *et al.* [1]. 
 
 The second phase uses the Clarke-Wright heuristic to complete the TSP tour as in Figure 2. 
 
