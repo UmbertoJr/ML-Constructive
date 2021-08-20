@@ -42,6 +42,7 @@ with the reward function of reinforcement learning setups for the TSP [3].
 Dependecies
 -----
 Python>=3.5
+
 Pytorch>=1.1
 
 How to install?
@@ -67,13 +68,13 @@ Statistical test
 python cli.py --operation show_stats
 ```
 
-Train
+Train on random instances
 -----
 ```shell
 python cli.py --operation train
 ```
 
-Test
+Test on TSPLIB instances
 ----
 ```shell
 python cli.py --operation test_on_TSPLIB
