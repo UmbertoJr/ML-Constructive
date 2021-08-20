@@ -25,6 +25,12 @@ The second phase uses the Clarke-Wright heuristic to complete the TSP tour as in
 </p>
 
 
+<p align="center">
+	<img src="figures\channels.png" alt="example plot"/>
+</p>
+
+
+
 For the curious readers, we suggest to look through the survey on ML approaches for the TSP [2], 
 and an unusual example on how to combine combinatorial optimization concepts 
 with the reward function of reinforcement learning setups for the TSP [3]. 
