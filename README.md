@@ -4,7 +4,8 @@ The general idea
 ----------
 ML-Constructive (ML-C) is the first constructive heuristics 
 that scales efficiently using information extracted from historical TSP optimal tours.
-ML-C exploits machine learning (ML) to learn common patterns from known optimal solutions provided by a perfect Oracle ().
+ML-C exploits machine learning (ML) to learn common patterns from known optimal 
+solutions provided by a perfect Oracle (Concorde optimal TSP solver).
 Then, ML-C uses such learnt ability to construct TSP tours in two phases.
 
 The first phase uses ML to filter some promising edges from the shortest edges connecting each vertex.
