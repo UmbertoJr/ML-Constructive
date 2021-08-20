@@ -41,15 +41,33 @@ with the reward function of reinforcement learning setups for the TSP [3].
 
 Dependecies
 -----
-Python>=3.5
+Python>=3.8.8
 
-Pytorch>=1.1
+Pytorch>=1.7
+
+Cython>=0.29.23
+
+git+git://github.com/jvkersch/pyconcorde.git
+
+H5py>=2.10.0
+
+Numpy>=1.20.2
+
+Pandas>=1.2.2
+
+Scipy>=1.6.2
+
+Matplotlib>=3.3.4
+
+Tqdm>=4.59.0
+
+and others, please refer to requirements.txt for additional information.
 
 How to install?
 ------
 
 ```shell
-git clone https://github.com/########
+git clone https://github.com/UmbertoJr/ML-Constructive.git
 cd ML-greedy/version1/
 ```
 
