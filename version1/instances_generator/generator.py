@@ -22,7 +22,7 @@ def save(data, seed, hf, num_inst_file):
                              data=all_tours[it])
 
 
-class Generate_Instances:
+class GenerateInstances:
 
     def __init__(self, settings, stats=False):
         self.settings = settings
@@ -65,7 +65,7 @@ class Generate_Instances:
 
     @staticmethod
     def distance_mat(pos):
-        distance = Generate_Instances.create_upper_matrix(pdist(pos, "euclidean"), pos.shape[0])
+        distance = GenerateInstances.create_upper_matrix(pdist(pos, "euclidean"), pos.shape[0])
         distance = np.round((distance.T + distance) * 1000, 0) / 1000
         return distance
 

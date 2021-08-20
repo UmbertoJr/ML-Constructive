@@ -2,7 +2,7 @@ import h5py
 from tqdm import tqdm
 from time import time
 from InOut.tools import DirManager, create_folder
-from instances_generator.generator import Generate_Instances, save
+from instances_generator.generator import GenerateInstances, save
 
 
 def create_instances(settings):
@@ -15,7 +15,7 @@ def create_instances(settings):
 
     iterator_on_files = tqdm(range(number_files))
 
-    gt = Generate_Instances(settings)
+    gt = GenerateInstances(settings)
     for file in iterator_on_files:
         seed = file * number_instances_per_file + 10000
 
@@ -32,7 +32,7 @@ def create_instances(settings):
 def create_statistical_study_data(settings):
     start = time()
     number_instances_per_file = 1000
-    gt = Generate_Instances(settings, stats=True)
+    gt = GenerateInstances(settings, stats=True)
 
     # to save created data
     data = gt.create_instances(number_instances_per_file, 123)
