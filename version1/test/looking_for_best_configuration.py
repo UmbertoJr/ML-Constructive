@@ -63,17 +63,26 @@ def train_the_best_configuration(settings):
             predictions1 = model(x)
             loss1 = criterion(predictions1, y)
             optimizer.zero_grad()
-            loss1.backward(retain_graph=True)
+            # loss1.backward(retain_graph=True)
+            loss1.backward()
             optimizer.step()
 
             TP, FP, TN, FN = compute_metrics(predictions1.detach(), y.detach())
 
             TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_off.update_metrics(TP, FP, TN, FN)
-            if iteration > 2000:
+            if iteration > 10:
+                torch.save(model.state_dict(),
+                           dir_ent.folder_train + 'checkpoint.pth')
                 online_data_generator = OnlineDataSetHandler(settings, model)
                 x_online, y_online = online_data_generator.get_data()
                 predictions2 = model(x_online)
-                dist = Categorical(probs=predictions2)
+                loss1 = criterion(predictions2, y_online)
+                optimizer.zero_grad()
+                loss1.backward(retain_graph=True)
+                optimizer.step()
+
+                predictions3 = model(x_online)
+                dist = Categorical(probs=predictions3)
                 actions = dist.sample()
                 log_probs = dist.log_prob(actions)
 

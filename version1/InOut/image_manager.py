@@ -1,4 +1,5 @@
 import os
+from abc import ABC
 
 import torch
 import numpy as np
@@ -8,7 +9,7 @@ from scipy.spatial.distance import pdist
 
 from InOut.tools import DirManager
 from InOut.image_creator import ImageTrainDataCreator, ImageTestCreator
-from InOut.utils import sort_the_list_of_files, slice_iterator, to_torch
+from InOut.utils import sort_the_list_of_files, slice_iterator, to_torch, plot_single_cv
 from InOut.output_agent import OutputHandler
 
 
@@ -94,7 +95,6 @@ class DatasetHandler(Dataset):
 
         self.current_initial += self.ls_ind
         self.X, self.Y = new_X, new_Y
-
         self.current_available += count_new_images
 
     @property
@@ -132,7 +132,6 @@ class DatasetHandler(Dataset):
 
     def load_data_from_file(self, key):
         actual_key = key
-        # while actual_key < self.starting_seed + self.tot_num_of_instances:
         number_cities = self.file[f'//seed_{actual_key}'][f'num_cities'][...]
         pos = self.file[f'//seed_{actual_key}'][f'pos'][...]
         tour = self.file[f'//seed_{actual_key}'][f'optimal_tour'][...]
@@ -141,7 +140,7 @@ class DatasetHandler(Dataset):
         return (number_cities, pos, tour), new_images
 
 
-class OnlineDataSetHandler(Dataset):
+class OnlineDataSetHandler(Dataset, ABC):
 
     def __init__(self, settings, model):
         self.file = False
@@ -159,7 +158,9 @@ class OnlineDataSetHandler(Dataset):
             self.device = 'cuda'
         else:
             self.device = 'cpu'
-        self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/best_diff.pth',
+        # self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/best_diff.pth',
+        #                                       map_location=self.device))
+        self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/checkpoint.pth',
                                               map_location=self.device))
 
     def get_data(self):
@@ -184,19 +185,25 @@ class OnlineDataSetHandler(Dataset):
                     image, too_close = image_creator.get_image(i, j, partial_solution)
                     x.append(image)
                     if too_close:
-                        y.append(1)
                         self.add_to_sol(i, j, partial_solution)
+                        continue
                     else:
-                        y.append(output_handler.create_output(i, j))
+                        out_ = output_handler.create_output(i, j)
+                    y.append(out_)
                     self.model.eval()
-                    image_ = to_torch(image).to(self.device)
+                    image_ = torch.tensor(image, dtype=torch.float).to(self.device)
+                    image_ = image_[None, :, :, :]
+                    image_ = image_.permute(0, 3, 1, 2)
                     ret = self.model(image_)
                     ret = ret.detach().cpu().numpy()[0]
-                    if ret.detach().cpu().numpy()[0] < 0.01:
+                    # print(image_.shape)
+                    # print(out_, ret)
+                    # plot_single_cv(image)
+                    if ret[0] < 0.01:
                         self.add_to_sol(i, j, partial_solution)
 
         X = to_torch(np.stack(x, axis=0)).to(self.device)
-        Y = to_torch(np.stack(y)).to(self.device)
+        Y = torch.tensor(np.stack(y), dtype=torch.long).to(self.device)
         return X[:self.settings.bs], Y[:self.settings.bs]
 
     def add_to_sol(self, node1, node2, dict_sol):
@@ -208,7 +215,7 @@ class OnlineDataSetHandler(Dataset):
         return self.len
 
     def create_LP(self, dist_matrix):
-        len_neig = self.settings.cases_in_LP
+        len_neig = self.settings.cases_in_L_P
         LP_v = {i: {} for i in range(len_neig)}
         keys = []
         return_list = []

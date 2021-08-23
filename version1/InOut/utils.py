@@ -91,7 +91,7 @@ def plot_cv(im_list, city):
 def plot_single_cv(image):
     el = (image * 255).astype(np.uint8)
     img = cv.resize(el, (96 * 4, 96 * 4), interpolation=cv.INTER_NEAREST)
-    print(img.shape)
+    # print(img.shape)
     # for i in range(3):
     empy_channel = np.zeros((96 * 4, 96 * 4, 1)).astype(np.uint8)
     red_channel = np.concatenate([empy_channel, empy_channel, img[:, :, 2, None]], axis=-1)
@@ -101,6 +101,7 @@ def plot_single_cv(image):
     cv.imshow('first channel', red_channel)
     cv.imshow('second channel', green_channel)
     cv.imshow('third channel', blue_channel)
+    cv.imshow("all", img)
     # cv.imwrite(f'./data/images/example/red_channel_{case}.png', red_channel)
     # cv.imwrite(f'./data/images/example/green_channel_{case}.png', green_channel)
     # cv.imwrite(f'./data/images/example/blue_channel_{case}.png', blue_channel)
