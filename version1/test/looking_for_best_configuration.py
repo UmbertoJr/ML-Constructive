@@ -70,7 +70,7 @@ def train_the_best_configuration(settings):
             TP, FP, TN, FN = compute_metrics(predictions1.detach(), y.detach())
 
             TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_off.update_metrics(TP, FP, TN, FN)
-            if iteration > 10:
+            if iteration > 1000:
                 torch.save(model.state_dict(),
                            dir_ent.folder_train + 'checkpoint.pth')
                 online_data_generator = OnlineDataSetHandler(settings, model)
