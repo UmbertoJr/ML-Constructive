@@ -49,7 +49,7 @@ def train_the_best_configuration(settings):
     best_list = []
     best_delta = 0
     average_delta = deque([0.5 for _ in range(100)])
-    for epoch in range(1):
+    for epoch in range(2):
         generator = DatasetHandler(settings)
         data_logger = tqdm(DataLoader(generator, batch_size=settings.bs, drop_last=True))
 
@@ -71,6 +71,8 @@ def train_the_best_configuration(settings):
 
             TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_off.update_metrics(TP, FP, TN, FN)
             if iteration > 1000:
+                torch.save(model.state_dict(),
+                           dir_ent.folder_train + 'checkpoint.pth')
                 # torch.save(model.state_dict(),
                 #            dir_ent.folder_train + 'checkpoint.pth')
                 online_data_generator = OnlineDataSetHandler(settings, model)

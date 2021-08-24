@@ -12,6 +12,7 @@ from test.tsplib_reader import EvalGenerator
 import torch
 from InOut import DatasetHandler
 from torch.utils.data import DataLoader
+from InOut.image_manager import OnlineDataSetHandler
 
 tempo = 2
 verbose = False
@@ -225,18 +226,23 @@ class Tester_on_eval:
             TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = (0 for i in range(8))
             self.net.eval()
             with torch.no_grad():
-                for iter, data in enumerate(data_logger):
-                    x, y = data["X"], data["Y"]
-                    x = x.to(self.device)
-                    y = y.to(self.device)
+                # for iter, data in enumerate(data_logger):
+                for _ in range(50):
 
-                    predictions = self.net(x)
+                    # x, y = data["X"], data["Y"]
+                    # x = x.to(self.device)
+                    # y = y.to(self.device)
+                    # predictions = self.net(x)
 
-                    TP, FP, TN, FN = compute_metrics(predictions.detach(), y.detach())
+                    online_data_generator = OnlineDataSetHandler(self.settings, self.net)
+                    x_online, y_online = online_data_generator.get_data()
+                    predictions = self.net(x_online)
+
+                    TP, FP, TN, FN = compute_metrics(predictions.detach(), y_online.detach())
 
                     TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mht.update_metrics(TP, FP, TN, FN)
-                    if iter > 500:
-                        break
+                    # if iter > 500:
+                    #     break
             return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR
 
         def check_test():
@@ -316,8 +322,8 @@ def compute_metrics(preds, y, rl_bool=False):
     TP, FP, TN, FN, CP, CN = (0 for _ in range(6))
     for i in range(preds.shape[0]):
         if not rl_bool:
-            # best = 1 if preds[i, 1] > 0.99 else 0
-            best = np.argsort(preds[i])[::-1][:1][0]
+            best = 1 if preds[i, 1] > 0.99 else 0
+            # best = np.argsort(preds[i])[::-1][:1][0]
         else:
             best = preds[i]
         if best == y[i]:

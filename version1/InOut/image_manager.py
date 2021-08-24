@@ -142,15 +142,21 @@ class DatasetHandler(Dataset):
 
 class OnlineDataSetHandler(Dataset, ABC):
 
-    def __init__(self, settings, model):
+    def __init__(self, settings, model, mode='train'):
         self.file = False
         self.settings = settings
         self.cases = settings.cases_in_L_P
         self.dir_ent = DirManager(settings)
         self.path = self.dir_ent.folder_instances
-        self.files_saved = sort_the_list_of_files(self.path)[:settings.last_file]
-        self.num_instances_x_file = settings.num_instances_x_file
-        self.tot_num_of_instances = self.settings.total_number_instances
+        self.mode = mode
+        if mode == 'eval':
+            self.files_saved = os.listdir("./data/eval/")
+            self.num_instances_x_file = 1000
+            self.tot_num_of_instances = 1000
+        else:
+            self.files_saved = sort_the_list_of_files(self.path)[:settings.last_file]
+            self.num_instances_x_file = settings.num_instances_x_file
+            self.tot_num_of_instances = self.settings.total_number_instances
 
         self.len = 256
         self.model = model
@@ -158,16 +164,19 @@ class OnlineDataSetHandler(Dataset, ABC):
             self.device = 'cuda'
         else:
             self.device = 'cpu'
-        self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/best_diff.pth',
-                                              map_location=self.device))
-        # self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/checkpoint.pth',
+        # self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/best_diff.pth',
         #                                       map_location=self.device))
+        self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/checkpoint.pth',
+                                              map_location=self.device))
 
     def get_data(self):
         x, y = [], []
         for _ in range(3):
             file_name = np.random.choice(self.files_saved, size=1)[0]
-            initial_key = int(file_name[:5])
+            if self.mode == 'eval':
+                initial_key = 123
+            else:
+                initial_key = int(file_name[:5])
             file = File(f"{self.path}/{file_name}", "r")
             actual_key = initial_key + np.random.randint(self.num_instances_x_file)
             number_cities = file[f'//seed_{actual_key}'][f'num_cities'][...]
