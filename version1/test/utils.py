@@ -306,6 +306,7 @@ class Tester_on_eval:
             self.name_case = f'dataset_train_history'
         else:
             self.name_case = name
+        create_folder(folder_name_to_create=self.folder_data)
         self.df.to_csv(f"{self.folder_data}{self.name_case}.csv")
 
 

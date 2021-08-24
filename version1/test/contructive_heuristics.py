@@ -11,7 +11,7 @@ class Constructive:
             "MF": self.mf,
             "CW": self.ck,
             "FI": self.fi,
-            "ML-G": self.select_method('our'),
+            "ML-C": self.select_method('our'),
             "first": self.select_method('first'),
             "second": self.select_method('second'),
             "yes": self.select_method('yes'),

@@ -81,12 +81,13 @@ def train_the_best_configuration(settings):
                 loss1.backward(retain_graph=True)
                 optimizer.step()
 
-                predictions3 = model(x_online)
-                dist = Categorical(probs=predictions3)
-                actions = dist.sample()
-                log_probs = dist.log_prob(actions)
+                # predictions3 = model(x_online)
+                # dist = Categorical(probs=predictions3)
+                # actions = dist.sample()
+                # log_probs = dist.log_prob(actions)
 
-                TP, FP, TN, FN = compute_metrics(actions.detach(), y_online.detach(), rl_bool=True)
+                # TP, FP, TN, FN = compute_metrics(actions.detach(), y_online.detach(), rl_bool=True)
+                TP, FP, TN, FN = compute_metrics(predictions2.detach(), y_online.detach())
                 mh_online = Metrics_Handler()
                 TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_online.update_metrics(TP, FP, TN, FN)
 
@@ -94,13 +95,13 @@ def train_the_best_configuration(settings):
                 advantage = new_plr - np.average(average_delta)
                 average_delta.append(new_plr)
                 average_delta.popleft()
-
-                advantage_t = torch.FloatTensor([advantage]).to(device).detach()
-                actor_loss = (log_probs * advantage_t).mean()
-
-                optimizer2.zero_grad()
-                actor_loss.backward()
-                optimizer2.step()
+                #
+                # advantage_t = torch.FloatTensor([advantage]).to(device).detach()
+                # actor_loss = (log_probs * advantage_t).mean()
+                #
+                # optimizer2.zero_grad()
+                # actor_loss.backward()
+                # optimizer2.step()
                 log_str = log_str_fun(advantage, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
                 data_logger.set_postfix_str(log_str)
 
