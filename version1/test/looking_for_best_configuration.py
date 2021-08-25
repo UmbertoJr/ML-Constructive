@@ -58,7 +58,7 @@ def train_the_best_configuration(settings):
             x = x.to(device)
             y = y.to(device)
 
-            if iteration < 2000:
+            if iteration <= 2000:
                 model.train()
                 optimizer.zero_grad()
                 predictions1 = model(x)
@@ -108,7 +108,7 @@ def train_the_best_configuration(settings):
             log_str = log_str_fun(advantage, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
             data_logger.set_postfix_str(log_str)
 
-            if iteration % 500 == 0 and iteration != 0:
+            if iteration % 200 == 0 and iteration != 0:
                 torch.save(model.state_dict(),
                            dir_ent.folder_train + 'checkpoint.pth')
                 val = tester.test(TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, iteration)

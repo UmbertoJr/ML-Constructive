@@ -192,12 +192,12 @@ class OnlineDataSetHandler(Dataset, ABC):
             for i, j in L_P:
                 if self.condition_to_enter_sol(i, j, partial_solution):
                     image, too_close = image_creator.get_image(i, j, partial_solution)
-                    x.append(image)
                     if too_close:
                         self.add_to_sol(i, j, partial_solution)
                         continue
                     else:
                         out_ = output_handler.create_output(i, j)
+                    x.append(image)
                     y.append(out_)
                     self.model.eval()
                     image_ = torch.tensor(image, dtype=torch.float).to(self.device)
@@ -213,7 +213,9 @@ class OnlineDataSetHandler(Dataset, ABC):
 
         X = to_torch(np.stack(x, axis=0)).to(self.device)
         Y = torch.tensor(np.stack(y), dtype=torch.long).to(self.device)
-        return X[:self.settings.bs], Y[:self.settings.bs]
+        indices = np.random.randint(low=0, high=X.shape[0] - 1, size=self.settings.bs)
+        indices = torch.from_numpy(indices)
+        return torch.index_select(X, 0, indices), torch.index_select(Y, 0, indices)
 
     def add_to_sol(self, node1, node2, dict_sol):
         dict_sol[str(node1)].append(node2)
