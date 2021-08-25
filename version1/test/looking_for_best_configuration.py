@@ -111,6 +111,10 @@ def train_the_best_configuration(settings):
             if iteration % 200 == 0 and iteration != 0:
                 torch.save(model.state_dict(),
                            dir_ent.folder_train + 'checkpoint.pth')
+                if iteration == 200:
+                    torch.save(model.state_dict(),
+                               dir_ent.folder_train + f'best_diff.pth')
+
                 val = tester.test(TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, iteration)
                 if val > best_delta:
                     torch.save(model.state_dict(),
