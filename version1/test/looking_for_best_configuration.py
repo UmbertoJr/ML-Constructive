@@ -72,6 +72,8 @@ def train_the_best_configuration(settings):
 
                 TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_off.update_metrics(TP, FP, TN, FN)
             else:
+                if iteration <= 2200:
+                    best_delta = 0
                 # torch.save(model.state_dict(),
                 #            dir_ent.folder_train + 'checkpoint.pth')
                 # torch.save(model.state_dict(),
