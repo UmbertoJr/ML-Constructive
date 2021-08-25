@@ -164,10 +164,10 @@ class OnlineDataSetHandler(Dataset, ABC):
             self.device = 'cuda'
         else:
             self.device = 'cpu'
-        # self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/best_diff.pth',
-        #                                       map_location=self.device))
-        self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/checkpoint.pth',
+        self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/best_diff.pth',
                                               map_location=self.device))
+        # self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/checkpoint.pth',
+        #                                       map_location=self.device))
 
     def get_data(self):
         x, y = [], []

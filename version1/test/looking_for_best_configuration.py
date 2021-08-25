@@ -58,31 +58,32 @@ def train_the_best_configuration(settings):
             x = x.to(device)
             y = y.to(device)
 
-            model.train()
-            optimizer.zero_grad()
-            predictions1 = model(x)
-            loss1 = criterion(predictions1, y)
-            optimizer.zero_grad()
-            # loss1.backward(retain_graph=True)
-            loss1.backward()
-            optimizer.step()
+            if iteration < 2000:
+                model.train()
+                optimizer.zero_grad()
+                predictions1 = model(x)
+                loss1 = criterion(predictions1, y)
+                optimizer.zero_grad()
+                # loss1.backward(retain_graph=True)
+                loss1.backward()
+                optimizer.step()
 
-            TP, FP, TN, FN = compute_metrics(predictions1.detach(), y.detach())
+                TP, FP, TN, FN = compute_metrics(predictions1.detach(), y.detach())
 
-            TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_off.update_metrics(TP, FP, TN, FN)
-            if iteration > 1000:
-                torch.save(model.state_dict(),
-                           dir_ent.folder_train + 'checkpoint.pth')
+                TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_off.update_metrics(TP, FP, TN, FN)
+            else:
+                # torch.save(model.state_dict(),
+                #            dir_ent.folder_train + 'checkpoint.pth')
                 # torch.save(model.state_dict(),
                 #            dir_ent.folder_train + 'checkpoint.pth')
                 online_data_generator = OnlineDataSetHandler(settings, model)
                 x_online, y_online = online_data_generator.get_data()
                 predictions2 = model(x_online)
-                loss1 = criterion(predictions2, y_online)
+                loss2 = criterion(predictions2, y_online)
                 optimizer.zero_grad()
-                loss1.backward(retain_graph=True)
+                loss2.backward()
                 optimizer.step()
-
+            #
                 # predictions3 = model(x_online)
                 # dist = Categorical(probs=predictions3)
                 # actions = dist.sample()
@@ -93,19 +94,19 @@ def train_the_best_configuration(settings):
                 mh_online = Metrics_Handler()
                 TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_online.update_metrics(TP, FP, TN, FN)
 
-                new_plr = TPR + TNR - FPR - FNR
-                advantage = new_plr - np.average(average_delta)
-                average_delta.append(new_plr)
-                average_delta.popleft()
-                #
-                # advantage_t = torch.FloatTensor([advantage]).to(device).detach()
-                # actor_loss = (log_probs * advantage_t).mean()
-                #
-                # optimizer2.zero_grad()
-                # actor_loss.backward()
-                # optimizer2.step()
-                log_str = log_str_fun(advantage, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
-                data_logger.set_postfix_str(log_str)
+            new_plr = TPR + TNR - FPR - FNR
+            advantage = new_plr - np.average(average_delta)
+            average_delta.append(new_plr)
+            average_delta.popleft()
+            #
+            # advantage_t = torch.FloatTensor([advantage]).to(device).detach()
+            # actor_loss = (log_probs * advantage_t).mean()
+            #
+            # optimizer2.zero_grad()
+            # actor_loss.backward()
+            # optimizer2.step()
+            log_str = log_str_fun(advantage, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
+            data_logger.set_postfix_str(log_str)
 
             if iteration % 500 == 0 and iteration != 0:
                 torch.save(model.state_dict(),
