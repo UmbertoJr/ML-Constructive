@@ -74,18 +74,18 @@ def test_metrics_on_TSPLIB(settings):
         # break
         df_result.loc['mean'] = df_result.mean()
         df_result.loc['std'] = df_result.std()
-        # create_folder(folder_name_to_create=f"test/reconstruction/CL_{settings.cases_in_L_P}/",
-        #               starting_folder='./data/')
-        # df_result.to_csv(F'./data/test/reconstruction/CL_{settings.cases_in_L_P}/results_ML-G_prob_{prob}.csv')
+        create_folder(folder_name_to_create=f"test/reconstruction/CL_{settings.cases_in_L_P}/",
+                      starting_folder='./data/')
+        df_result.to_csv(F'./data/test/reconstruction/CL_{settings.cases_in_L_P}/results_ML-G_prob_{prob}.csv')
 
     # print(sc.samples)
     df_positive = pd.DataFrame(data_p)
-    df_positive.to_csv('./data/test/reconstruction/positive_cases_ML-G.csv')
+    df_positive.to_csv(f'./data/test/reconstruction/CL_{settings.cases_in_L_P}/positive_cases_ML-G.csv')
     print(df_positive.groupby(['Method', 'Position in the CL']).mean())
     print(df_positive[df_positive['True Positive Rate'] == 0].groupby(['Method', 'Position in the CL']).count())
     print(df_positive[df_positive['True Positive Rate'] == 1].groupby(['Method', 'Position in the CL']).count())
     df_negative = pd.DataFrame(data_n)
-    df_negative.to_csv('./data/test/reconstruction/negative_cases_ML-G.csv')
+    df_negative.to_csv(f'./data/test/reconstruction/cl_{settings.cases_in_L_P}/negative_cases_ML-G.csv')
     print(df_negative.groupby(['Method', 'Position in the CL']).mean())
     print(df_negative[df_negative['False Positive Rate'] == 0].groupby(['Method', 'Position in the CL']).count())
     print(df_negative[df_negative['False Positive Rate'] == 1].groupby(['Method', 'Position in the CL']).count())

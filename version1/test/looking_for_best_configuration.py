@@ -49,7 +49,7 @@ def train_the_best_configuration(settings):
     best_list = []
     best_delta = 0
     average_delta = deque([0.5 for _ in range(100)])
-    for epoch in range(2):
+    for epoch in range(20):
         generator = DatasetHandler(settings)
         data_logger = tqdm(DataLoader(generator, batch_size=settings.bs, drop_last=True))
 
@@ -58,7 +58,7 @@ def train_the_best_configuration(settings):
             x = x.to(device)
             y = y.to(device)
 
-            if iteration <= 2000:
+            if iteration <= 20000:
                 model.train()
                 optimizer.zero_grad()
                 predictions1 = model(x)
