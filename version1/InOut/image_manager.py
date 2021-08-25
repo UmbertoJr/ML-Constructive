@@ -213,8 +213,8 @@ class OnlineDataSetHandler(Dataset, ABC):
 
         X = to_torch(np.stack(x, axis=0)).to(self.device)
         Y = torch.tensor(np.stack(y), dtype=torch.long).to(self.device)
-        indices = np.random.randint(low=0, high=X.shape[0] - 1, size=self.settings.bs)
-        indices = torch.from_numpy(indices)
+        indices = np.random.randint(low=0, high=X.shape[0], size=self.settings.bs)
+        indices = torch.from_numpy(indices).to(self.device)
         return torch.index_select(X, 0, indices), torch.index_select(Y, 0, indices)
 
     def add_to_sol(self, node1, node2, dict_sol):
