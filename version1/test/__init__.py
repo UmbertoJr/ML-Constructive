@@ -39,7 +39,7 @@ def create_list_to_save(solvers, admin):
 
 def test_metrics_on_TSPLIB(settings):
     # constructive_algs = ['MF', 'CW', 'F', 'S', 'Y', 'AE',  'BE', 'ML-C', 'ML-SC']
-    constructive_algs = ['F']
+    constructive_algs = ['ML-C']
     data_p = {'Method': [], 'Position in the CL': [], 'True Positive Rate': []}
     data_n = {'Method': [], 'Position in the CL': [], 'False Positive Rate': []}
     for prob in [1e-2, 1e-3, 1e-5]:
@@ -85,7 +85,7 @@ def test_metrics_on_TSPLIB(settings):
     print(df_positive[df_positive['True Positive Rate'] == 0].groupby(['Method', 'Position in the CL']).count())
     print(df_positive[df_positive['True Positive Rate'] == 1].groupby(['Method', 'Position in the CL']).count())
     df_negative = pd.DataFrame(data_n)
-    df_negative.to_csv(f'./data/test/reconstruction/cl_{settings.cases_in_L_P}/negative_cases_ML-G.csv')
+    df_negative.to_csv(f'./data/test/reconstruction/CL_{settings.cases_in_L_P}/negative_cases_ML-G.csv')
     print(df_negative.groupby(['Method', 'Position in the CL']).mean())
     print(df_negative[df_negative['False Positive Rate'] == 0].groupby(['Method', 'Position in the CL']).count())
     print(df_negative[df_negative['False Positive Rate'] == 1].groupby(['Method', 'Position in the CL']).count())

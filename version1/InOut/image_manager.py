@@ -151,12 +151,15 @@ class OnlineDataSetHandler(Dataset, ABC):
         self.mode = mode
         if mode == 'eval':
             self.files_saved = os.listdir("./data/eval/")
+            self.path = "./data/eval"
             self.num_instances_x_file = 1000
             self.tot_num_of_instances = 1000
+            self.prob_insert = 0.01
         else:
             self.files_saved = sort_the_list_of_files(self.path)[:settings.last_file]
             self.num_instances_x_file = settings.num_instances_x_file
             self.tot_num_of_instances = self.settings.total_number_instances
+            self.prob_insert = 0.01
 
         self.len = 256
         self.model = model
@@ -164,10 +167,10 @@ class OnlineDataSetHandler(Dataset, ABC):
             self.device = 'cuda'
         else:
             self.device = 'cpu'
-        self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/best_diff.pth',
-                                              map_location=self.device))
-        # self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/checkpoint.pth',
+        # self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/best_diff.pth',
         #                                       map_location=self.device))
+        self.model.load_state_dict(torch.load(f'./data/net_weights/CL_{self.settings.cases_in_L_P}/checkpoint.pth',
+                                              map_location=self.device))
 
     def get_data(self):
         x, y = [], []
@@ -208,7 +211,7 @@ class OnlineDataSetHandler(Dataset, ABC):
                     # print(image_.shape)
                     # print(out_, ret)
                     # plot_single_cv(image)
-                    if ret[0] < 0.01:
+                    if ret[0] < self.prob_insert:
                         self.add_to_sol(i, j, partial_solution)
 
         X = to_torch(np.stack(x, axis=0)).to(self.device)

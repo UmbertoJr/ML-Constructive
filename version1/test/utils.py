@@ -126,7 +126,7 @@ class possible_plots:
             plt.annotate(str(i), (self.pos[i, 0], self.pos[i, 1]))
 
         # plt.title(title)
-        plt.savefig(f"./data/images/{title}.png")
+        # plt.savefig(f"./data/images/{title}.png")
         plt.show()
 
     def case_step(self, pre_solution, new_step, prev_step, case):
@@ -234,7 +234,7 @@ class Tester_on_eval:
                     # y = y.to(self.device)
                     # predictions = self.net(x)
 
-                    online_data_generator = OnlineDataSetHandler(self.settings, self.net)
+                    online_data_generator = OnlineDataSetHandler(self.settings, self.net, mode='eval')
                     x_online, y_online = online_data_generator.get_data()
                     predictions = self.net(x_online)
 

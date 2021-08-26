@@ -12,6 +12,7 @@ from InOut.tools import create_folder, SampleCreator, plot_histogram, with_hue, 
 from InOut.candidateSets import CandidatesAgent
 from InOut.image_manager import DatasetHandler, slice_iterator
 from InOut.output_agent import OutputHandler
+from test.tsplib_reader import Read_TSP_Files
 
 
 class CheckCL(DatasetHandler):
@@ -44,6 +45,12 @@ class CheckCL(DatasetHandler):
             counts_cl += array_counts
 
         return counts_cl, tot_number_positive_cases
+
+
+class CheckCLTSPLIB:
+
+    def __init__(self):
+        pass
 
 
 def stat_plots(settings):

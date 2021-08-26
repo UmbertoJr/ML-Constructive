@@ -63,7 +63,7 @@ class PreSelection(EdgeInsertion):
                     keys.append((node, h))
 
         for in_cl in range(len_neig):
-            return_list.extend([k for k, v in sorted(LP_v[in_cl].items(), key=lambda item: -item[1])])
+            return_list.extend([k for k, v in sorted(LP_v[in_cl].items(), key=lambda item: item[1])])
         return return_list
 
     def create_neigs(self):
@@ -188,8 +188,9 @@ class PreSelection(EdgeInsertion):
         for i, j in self.LP:
             if self.condition_to_enter_sol(i, j, self.firstPhaseSolution):
                 self.add_visit(i, j)
+                # print("inserted", i, j)
                 if self.ML_check(i, j):
-                    # print("inserted", i, j)
+                    # print("ML agrees")
                     self.firstPhaseSolution = self.add_to_sol(i, j, self.firstPhaseSolution)
                     self.edges_inserted += 1
                 # plotter.plot_new_selection(self.firstPhaseSolution, i, j)
@@ -233,9 +234,9 @@ class PreSelection(EdgeInsertion):
     def update_metrics_run(self, i, j, ret):
         # print(self.prob_to_check, ret)
         if self.check_EVENT_optimal(i, j):
-            # print('giusto')
             # if ret[1] > self.prob_to_check:
             if ret[0] < self.prob_to_check:
+                # print('giusto')
                 if self.check_first(i, j):
                     self.TP[0] += 1
                     self.P[0] += 1
@@ -248,9 +249,9 @@ class PreSelection(EdgeInsertion):
                 else:
                     self.P[1] += 1
         else:
-            # print('sbagliato')
             # if ret[1] > self.prob_to_check:
             if ret[0] < self.prob_to_check:
+                # print('sbagliato')
                 if self.check_first(i, j):
                     self.N[0] += 1
                 else:

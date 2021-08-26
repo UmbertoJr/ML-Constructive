@@ -32,7 +32,11 @@ def train_the_best_configuration(settings):
 
     model = resnet_for_the_tsp(settings)
     model = model.to(device)
-    model.apply(model.weight_init)
+    # model.apply(model.weight_init)
+    model.load_state_dict(torch.load(f'./data/net_weights/CL_{settings.cases_in_L_P}/best_diff.pth',
+                                     map_location=device))
+    torch.save(model.state_dict(),
+               dir_ent.folder_train + 'checkpoint.pth')
 
     # loss function one
     criterion = torch.nn.CrossEntropyLoss()
@@ -49,7 +53,7 @@ def train_the_best_configuration(settings):
     best_list = []
     best_delta = 0
     average_delta = deque([0.5 for _ in range(100)])
-    for epoch in range(20):
+    for epoch in range(10):
         generator = DatasetHandler(settings)
         data_logger = tqdm(DataLoader(generator, batch_size=settings.bs, drop_last=True))
 
@@ -58,7 +62,7 @@ def train_the_best_configuration(settings):
             x = x.to(device)
             y = y.to(device)
 
-            if iteration <= 20000:
+            if iteration <= -1:
                 model.train()
                 optimizer.zero_grad()
                 predictions1 = model(x)
@@ -72,13 +76,13 @@ def train_the_best_configuration(settings):
 
                 TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_off.update_metrics(TP, FP, TN, FN)
             else:
-                if iteration <= 2200:
-                    best_delta = 0
+                # if iteration <= 2200:
+                #     best_delta = 0
                 # torch.save(model.state_dict(),
                 #            dir_ent.folder_train + 'checkpoint.pth')
                 # torch.save(model.state_dict(),
                 #            dir_ent.folder_train + 'checkpoint.pth')
-                online_data_generator = OnlineDataSetHandler(settings, model)
+                online_data_generator = OnlineDataSetHandler(settings, model, mode='train')
                 x_online, y_online = online_data_generator.get_data()
                 predictions2 = model(x_online)
                 loss2 = criterion(predictions2, y_online)
