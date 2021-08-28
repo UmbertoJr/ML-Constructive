@@ -175,7 +175,7 @@ class possible_plots:
     def plot_current_sol(pos, sol):
         plt.scatter(pos[:, 0], pos[:, 1], marker='o', c=mcd.CSS4_COLORS['cyan'])
         sol_p = list(sol) + [sol[0]]
-        print(sol_p)
+        # print(sol_p)
         ordered_points = pos[sol_p]
         plt.plot(ordered_points[:, 0], ordered_points[:, 1], f'r-')
         for i in range(pos.shape[0]):

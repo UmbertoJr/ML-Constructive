@@ -39,10 +39,10 @@ def create_list_to_save(solvers, admin):
 
 def test_metrics_on_TSPLIB(settings):
     # constructive_algs = ['MF', 'CW', 'F', 'S', 'Y', 'AE',  'BE', 'ML-C', 'ML-SC']
-    constructive_algs = ['ML-C']
+    constructive_algs = ['F', 'ML-C']
     data_p = {'Method': [], 'Position in the CL': [], 'True Positive Rate': []}
     data_n = {'Method': [], 'Position in the CL': [], 'False Positive Rate': []}
-    for prob in [1e-2, 1e-3, 1e-5]:
+    for prob in [1e-2]:
         metrics = []
         data = {}
         for solv in constructive_algs:
@@ -57,13 +57,14 @@ def test_metrics_on_TSPLIB(settings):
                 greedy_heuristic = Constructive(constructive, admin)
 
                 # create simple solution
-                sol_no_pre, time_to_solve, solver = greedy_heuristic.solve(prob)
+                sol_no_pre, time_to_solve, solver = greedy_heuristic.solve(prob=[0.1, prob])
                 admin.save(sol_no_pre, method=constructive, time=time_to_solve)
 
-                # print(admin.gaps[constructive])
+                # print(constructive, admin.gaps[constructive])
                 # sc.save_from_constructor(solver.P, solver.N, solver.TP, solver.TN, solver.cases)
                 data_p, data_n = sc.save_new_data(data_p, data_n, admin.sols[constructive], constructive)
 
+            # input()
             list_to_save = create_list_to_save(constructive_algs, admin)
             data[admin.name].extend(list_to_save)
 
@@ -84,11 +85,15 @@ def test_metrics_on_TSPLIB(settings):
     print(df_positive.groupby(['Method', 'Position in the CL']).mean())
     print(df_positive[df_positive['True Positive Rate'] == 0].groupby(['Method', 'Position in the CL']).count())
     print(df_positive[df_positive['True Positive Rate'] == 1].groupby(['Method', 'Position in the CL']).count())
+    print(df_positive.groupby(['Method', 'Position in the CL']).count())
+    print('\n')
+
     df_negative = pd.DataFrame(data_n)
     df_negative.to_csv(f'./data/test/reconstruction/CL_{settings.cases_in_L_P}/negative_cases_ML-G.csv')
     print(df_negative.groupby(['Method', 'Position in the CL']).mean())
     print(df_negative[df_negative['False Positive Rate'] == 0].groupby(['Method', 'Position in the CL']).count())
     print(df_negative[df_negative['False Positive Rate'] == 1].groupby(['Method', 'Position in the CL']).count())
+    print(df_negative.groupby(['Method', 'Position in the CL']).count())
 
     # df_result = pd.DataFrame.from_dict(data, orient='index', columns=metrics)
     # df_result.loc['mean'] = df_result.mean()

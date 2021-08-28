@@ -91,17 +91,20 @@ class PreSelection(EdgeInsertion):
         self.firstPhase()
         if verbose:
             plotter = possible_plots(self.pos, self.prob_to_check)
+            print(self.P, self.N, self.TN, self.TP)
             print(f"inserted: {self.edges_inserted}, tot cases: {len(self.LP)} \n"
                   f"percentage inserted = {self.edges_inserted / len(self.LP)} \n"
                   f"partial solution found: {self.edges_inserted / self.num_cit} \n"
                   f"TPR0 : {self.TP[0] / self.P[0]}, FPR0 : {(self.N[0] - self.TN[0]) / self.N[0]} , "
                   f"ACC0 : {(self.TP[0] + self.TN[0])/(self.P[0] + self.N[0])} \n"
+                  f"precision0 : {[self.TP[0] / (self.TP[0] + self.N[0] - self.TN[0]) if self.TP[0] + self.N[0] - self.TN[0] != 0 else 0 ][0]} \n "
                   f"TPR1 : {self.TP[1] / self.P[1]}, FPR1 : {(self.N[1] - self.TN[1]) / self.N[1]}, "
-                  f"ACC1 : {(self.TP[1] + self.TN[1])/(self.P[1] + self.N[1])} \n")
+                  f"ACC1 : {(self.TP[1] + self.TN[1])/(self.P[1] + self.N[1])} \n"
+                  f"precision0 : {[self.TP[1] / (self.TP[1] + self.N[1] - self.TN[1]) if self.TP[1] + self.N[1] - self.TN[1] != 0 else 0 ][0]} \n ")
         # solution = self.middlePhase(self.firstPhaseSolution)
         solution = self.secondPhase(self.firstPhaseSolution)
         # plotter.plot_current_sol(self.pos, solution)
-        # plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
+        # plotter.plot_situation(self.firstPhaseSolution, title="first phase reconstruction")
         # plotter.plot_situation(solution)
         # self.keep_middle(solution, 1)
         # print(solution)
@@ -111,8 +114,9 @@ class PreSelection(EdgeInsertion):
         # solution = self.secondPhase(solution)
         # print(solution)
         # solution = self.remove_crosses(solution)
-        # plotter.plot_current_sol(self.pos, solution)
-        # plotter.plot_situation(self.firstPhaseSolution, title="second phase reconstruction")
+        if verbose:
+            plotter.plot_current_sol(self.pos, solution)
+            plotter.plot_situation(self.firstPhaseSolution, title="after two opt phase reconstruction")
         # input()
         return solution
 
@@ -220,6 +224,7 @@ class PreSelection(EdgeInsertion):
         # plot_single_cv(image)
         image = np.stack([image, image], axis=0)
         if too_close:
+            # print('too close')
             self.update_metrics_run(i, j, [0., 1.])
             return True
         image_ = to_torch(image).to('cpu')
@@ -229,54 +234,67 @@ class PreSelection(EdgeInsertion):
         ret = ret.detach().cpu().numpy()[0]
         self.update_metrics_run(i, j, ret)
         # return True if ret[1] > self.prob_to_check else False
-        return True if ret[0] < self.prob_to_check else False
+        if self.check_first(i, j, other=True):
+            return True if ret[0] < self.prob_to_check[0] else False
+        else:
+            return True if ret[0] < self.prob_to_check[1] else False
+
 
     def update_metrics_run(self, i, j, ret):
         # print(self.prob_to_check, ret)
         if self.check_EVENT_optimal(i, j):
             # if ret[1] > self.prob_to_check:
-            if ret[0] < self.prob_to_check:
-                # print('giusto')
-                if self.check_first(i, j):
+            # if ret[0] < self.prob_to_check:
+            if self.check_first(i, j, other=True):
+                if ret[0] < self.prob_to_check[0]:
                     self.TP[0] += 1
                     self.P[0] += 1
                 else:
+                    self.P[0] += 1
+            else:
+                if ret[0] < self.prob_to_check[1]:
                     self.TP[1] += 1
                     self.P[1] += 1
-            else:
-                if self.check_first(i, j):
-                    self.P[0] += 1
                 else:
                     self.P[1] += 1
+            # print('true positive')
         else:
             # if ret[1] > self.prob_to_check:
-            if ret[0] < self.prob_to_check:
-                # print('sbagliato')
-                if self.check_first(i, j):
+            # if ret[0] < self.prob_to_check:
+                # print('False Negative')
+            if self.check_first(i, j, other=True):
+                if ret[0] < self.prob_to_check[0]:
                     self.N[0] += 1
                 else:
-                    self.N[1] += 1
-            else:
-                if self.check_first(i, j):
+                    self.N[0] += 1
                     self.TN[0] += 1
-                    self.N[0] += 1
-                else:
-                    self.TN[1] += 1
+            else:
+                if ret[0] < self.prob_to_check[1]:
                     self.N[1] += 1
+                else:
+                    self.N[1] += 1
+                    self.TN[1] += 1
         # print(self.TP, self.P, self.TN, self.N)
 
-    def check_first(self, i, j):
+    def check_first(self, i, j, other=False):
         insert_bool = True if i == self.neighborhood[j][0] or j == self.neighborhood[i][0] else False
-        # if self.check_EVENT_optimal(i, j):
-        # if insert_bool:
-        #     self.TP += 1
-        # else:
-        #     self.FN += 1
-        # else:
-        #     if insert_bool:
-        #         self.FP += 1
-        #     else:
-        #         self.TN += 1
+        if verbose and not other:
+            if insert_bool:
+                if self.check_EVENT_optimal(i, j):
+                    # print('true positive')
+                    self.TP[0] += 1
+                    self.P[0] += 1
+                else:
+                    # print('false positive')
+                    self.N[0] += 1
+            else:
+                if self.check_EVENT_optimal(i, j):
+                    # print('false negative')
+                    self.P[1] += 1
+                else:
+                    # print('true negative')
+                    self.N[1] += 1
+                    self.TN[1] += 1
         return insert_bool
 
     def check_second(self, i, j):
