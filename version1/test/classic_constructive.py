@@ -173,9 +173,13 @@ class FarthestInsertion:
         row_index = np.array(sol_list)
         col_index = list(free_)
         small_mat = mat[row_index[:, None], col_index]
-        sum_dist = np.sum(small_mat, axis=0)
-        j = np.argmax(sum_dist)
+        # sum_dist = np.sum(small_mat, axis=0)
+        # j = np.argmax(sum_dist)
+        i, j = np.unravel_index(small_mat.argmax(), small_mat.shape)
         return col_index[j]
+
+
+
 
     @staticmethod
     def where(sol_list, next_node, mat):

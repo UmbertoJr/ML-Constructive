@@ -25,17 +25,17 @@ class Constructive:
         }
         self.solve = solvers[name_solver]
 
-    def mf(self, *args):
+    def mf(self, *args, **kwargs):
         start = time()
-        return MultiFragment.mf(self.admin.dist_matrix), time() - start
+        return MultiFragment.mf(self.admin.dist_matrix), time() - start, None
 
-    def ck(self, *args):
+    def ck(self, *args, **kwargs):
         start = time()
-        return ClarkeWright.cw(self.admin.dist_matrix), time() - start
+        return ClarkeWright.cw(self.admin.dist_matrix), time() - start, None
 
-    def fi(self, *args):
+    def fi(self, *args, **kwargs):
         start = time()
-        return FarthestInsertion.solve(self.admin.dist_matrix, self.admin.pos), time() - start
+        return FarthestInsertion.solve(self.admin.dist_matrix, self.admin.pos), time() - start, None
 
     def select_method(self, method):
         def our_method(prob):
