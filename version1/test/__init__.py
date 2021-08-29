@@ -38,9 +38,9 @@ def create_list_to_save(solvers, admin):
 
 
 def test_metrics_on_TSPLIB(settings):
-    # constructive_algs = ['MF', 'FI'. 'CW', 'F', 'S', 'Y', 'AE',  'BE', 'ML-C', 'ML-SC']
+    constructive_algs = ['MF', 'FI', 'CW', 'F', 'S', 'Y', 'AE',  'BE', 'ML-C', 'ML-SC']
     # constructive_algs = ['F', 'ML-C']
-    constructive_algs = ['FI']
+    # constructive_algs = ['FI']
     data_p = {'Method': [], 'Position in the CL': [], 'True Positive Rate': []}
     data_n = {'Method': [], 'Position in the CL': [], 'False Positive Rate': []}
     for prob in [1e-2]:
@@ -58,7 +58,7 @@ def test_metrics_on_TSPLIB(settings):
                 greedy_heuristic = Constructive(constructive, admin)
 
                 # create simple solution
-                sol_no_pre, time_to_solve, solver = greedy_heuristic.solve(prob=[0.001, 0.001])
+                sol_no_pre, time_to_solve, solver = greedy_heuristic.solve(prob=[0.01, 0.01])
                 admin.save(sol_no_pre, method=constructive, time=time_to_solve)
 
                 # print(constructive, admin.gaps[constructive])
@@ -78,7 +78,7 @@ def test_metrics_on_TSPLIB(settings):
         df_result.loc['std'] = df_result.std()
         create_folder(folder_name_to_create=f"test/reconstruction/CL_{settings.cases_in_L_P}/",
                       starting_folder='./data/')
-        df_result.to_csv(F'./data/test/reconstruction/CL_{settings.cases_in_L_P}/results_ML-G_prob_{prob}.csv')
+        df_result.to_csv(F'./data/test/reconstruction/CL_{settings.cases_in_L_P}/results_prob_{prob}.csv')
 
     # print(sc.samples)
     df_positive = pd.DataFrame(data_p)

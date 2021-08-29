@@ -49,7 +49,6 @@ def train_the_best_configuration(settings):
 
     # initialize variables
     iteration = 0
-    mh_off = Metrics_Handler()
     best_list = []
     best_delta = 0
     average_delta = deque([0.5 for _ in range(100)])
@@ -68,16 +67,33 @@ def train_the_best_configuration(settings):
                 predictions1 = model(x)
                 loss1 = criterion(predictions1, y)
                 optimizer.zero_grad()
-                # loss1.backward(retain_graph=True)
-                loss1.backward()
+                loss1.backward(retain_graph=True)
+                # loss1.backward()
                 optimizer.step()
 
-                TP, FP, TN, FN = compute_metrics(predictions1.detach(), y.detach())
+                predictions3 = model(x)
+                dist = Categorical(probs=predictions3)
+                actions = dist.sample()
+                log_probs = dist.log_prob(actions)
 
+                TP, FP, TN, FN = compute_metrics(actions.detach(), y.detach(), rl_bool=True)
+
+                mh_off = Metrics_Handler()
                 TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_off.update_metrics(TP, FP, TN, FN)
+                new_plr = TPR + TNR - FPR - FNR
+                advantage = new_plr - np.average(average_delta)
+                average_delta.append(new_plr)
+                average_delta.popleft()
+
+                advantage_t = torch.FloatTensor([advantage]).to(device).detach()
+                actor_loss = (log_probs * advantage_t).mean()
+
+                optimizer2.zero_grad()
+                actor_loss.backward()
+                optimizer2.step()
             else:
-                if iteration <= 2200:
-                    best_delta = 0
+                # if iteration <= 2200:
+                #     best_delta = 0
                 torch.save(model.state_dict(),
                            dir_ent.folder_train + 'checkpoint.pth')
                 # torch.save(model.state_dict(),
@@ -87,30 +103,31 @@ def train_the_best_configuration(settings):
                 predictions2 = model(x_online)
                 loss2 = criterion(predictions2, y_online)
                 optimizer.zero_grad()
-                loss2.backward()
+                loss2.backward(retain_graph=True)
                 optimizer.step()
-            #
-                # predictions3 = model(x_online)
-                # dist = Categorical(probs=predictions3)
-                # actions = dist.sample()
-                # log_probs = dist.log_prob(actions)
+                #
+                predictions3 = model(x_online)
+                dist = Categorical(probs=predictions3)
+                actions = dist.sample()
+                log_probs = dist.log_prob(actions)
 
-                # TP, FP, TN, FN = compute_metrics(actions.detach(), y_online.detach(), rl_bool=True)
-                TP, FP, TN, FN = compute_metrics(predictions2.detach(), y_online.detach())
+                TP, FP, TN, FN = compute_metrics(actions.detach(), y_online.detach(), rl_bool=True)
+                # TP, FP, TN, FN = compute_metrics(predictions2.detach(), y_online.detach())
                 mh_online = Metrics_Handler()
                 TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_online.update_metrics(TP, FP, TN, FN)
 
-            new_plr = TPR + TNR - FPR - FNR
-            advantage = new_plr - np.average(average_delta)
-            average_delta.append(new_plr)
-            average_delta.popleft()
-            #
-            # advantage_t = torch.FloatTensor([advantage]).to(device).detach()
-            # actor_loss = (log_probs * advantage_t).mean()
-            #
-            # optimizer2.zero_grad()
-            # actor_loss.backward()
-            # optimizer2.step()
+                new_plr = TPR + TNR - FPR - FNR
+                advantage = new_plr - np.average(average_delta)
+                average_delta.append(new_plr)
+                average_delta.popleft()
+
+                advantage_t = torch.FloatTensor([advantage]).to(device).detach()
+                actor_loss = (log_probs * advantage_t).mean()
+
+                optimizer2.zero_grad()
+                actor_loss.backward()
+                optimizer2.step()
+
             log_str = log_str_fun(advantage, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
             data_logger.set_postfix_str(log_str)
 

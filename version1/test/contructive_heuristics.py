@@ -45,7 +45,7 @@ class Constructive:
         return our_method
 
     def select_empirical(self, mode):
-        def run_empirical(*args):
+        def run_empirical(*args, **kwargs):
             sols, lens, times = [], [], []
             for _ in range(20):
                 solver = self.select_method("empirical")
