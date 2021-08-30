@@ -30,9 +30,10 @@ if __name__ == '__main__':
         print("Evaluation data-set created!")
 
     elif operation.operation == "statistical_study":
-        settings.operation = "statistical study"
+        settings.operation = "stats CL"
         print_sett(settings)
         run_op(settings)
+        settings.operation = "stats constructors"
         print('\nstatistical study ready!')
 
     elif operation.operation == "train":

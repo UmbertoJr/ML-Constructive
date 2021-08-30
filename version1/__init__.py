@@ -1,7 +1,7 @@
 from InOut.tools import print_sett
 from InOut import test_images_created
 from model.network import check_network
-from test import test_metrics_on_TSPLIB
+from test import test_metrics_on_TSPLIB, stats_on_constructives
 from instances_generator.test import stat_plots
 from instances_generator import create_instances, create_statistical_study_data
 from test.looking_for_best_configuration import show_results, train_the_best_configuration
@@ -26,7 +26,8 @@ class Settings:
 operations = {
     "create training instances": create_instances,
     "create evaluation instances": create_statistical_study_data,
-    "statistical study": stat_plots,
+    "stats CL": stat_plots,
+    "stats constructors": stats_on_constructives,
     'test images': test_images_created,
     "test net": check_network,
     "train": train_the_best_configuration,
@@ -37,13 +38,14 @@ operations = {
 
 if __name__ == '__main__':
     settings = Settings()
-    # settings.operation = 'statistical study'
+    # settings.operation = 'stats CL'
+    settings.operation = 'stats constructors'
     # settings.operation = 'test net'
     # settings.operation = 'test images'
     # settings.operation = 'train'
     # settings.operation = 'show results train'
     # settings.operation = "get the best network parameters after first train"
     # # settings.operation = "test reconstruction"
-    settings.operation = 'test on TSPLIB'
+    # settings.operation = 'test on TSPLIB'
     print_sett(settings)
     operations[settings.operation](settings)

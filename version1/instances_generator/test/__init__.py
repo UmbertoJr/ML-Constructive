@@ -1,3 +1,4 @@
+import os
 import warnings
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -8,7 +9,7 @@ from tqdm import tqdm
 import seaborn as sns
 import matplotlib.pyplot as plt
 from InOut.utils import distance_mat
-from InOut.tools import create_folder, SampleCreator, plot_histogram, with_hue, change_width
+from InOut.tools import create_folder, with_hue, change_width
 from InOut.candidateSets import CandidatesAgent
 from InOut.image_manager import DatasetHandler, slice_iterator
 from InOut.output_agent import OutputHandler
@@ -46,11 +47,16 @@ class CheckCL(DatasetHandler):
 
         return counts_cl, tot_number_positive_cases
 
-
-class CheckCLTSPLIB:
-
-    def __init__(self):
-        pass
+    def take_distribution_test(self):
+        generator_instance = Read_TSP_Files()
+        tot_number_positive_cases = 0
+        counts_cl = np.zeros(8)
+        for data in tqdm(generator_instance.instances_generator(), total=len(generator_instance.files)):
+            number_cities, pos, distances, name, opt_tour = data
+            tot_number_positive_cases += number_cities
+            array_count = distribution_fun(self.settings, number_cities, pos, opt_tour, dist_matrix=distances)
+            counts_cl += array_count
+        return counts_cl, tot_number_positive_cases
 
 
 def stat_plots(settings):
@@ -64,17 +70,22 @@ def stat_plots(settings):
         tot_counts_cl += counts_cl
         tot_p += tp
 
-    data = pd.DataFrame({"Position in the CL": np.arange(1, 9), "Positive Cases PDF": tot_counts_cl / (tot_p * 2)})
-    ax = sns.barplot(x="Position in the CL", y="Positive Cases PDF", data=data, color='tab:blue')
-    with_hue(ax, data, 8, 1)
-    create_folder(f'data/images/')
-    plt.savefig('data/images/opt_distr_CL.png')
-    plt.show()
+    def show_cl_situation(tot_counts_cl, tot_p, name):
+        data = pd.DataFrame({"Position in the CL": np.arange(1, 9), "Positive Cases PDF": tot_counts_cl / (tot_p * 2)})
+        ax = sns.barplot(x="Position in the CL", y="Positive Cases PDF", data=data, color='tab:blue')
+        with_hue(ax, data, 8, 1)
+        if not os.path.isdir('./data/images/'):
+            create_folder(f'data/images/')
+        plt.savefig(f'data/images/opt_distr_{name}_CL.png')
+        plt.show()
 
-    print('\n\nTrue Positive Rate and False Positive Rate\n')
+    show_cl_situation(tot_counts_cl, tot_p, "eval")
+
+    tot_counts_cl, tot_p = generator.take_distribution_test()
+    show_cl_situation(tot_counts_cl, tot_p, "test")
 
 
-def distribution_fun(settings, number_cities, pos, optimal_tour):
+def distribution_fun(settings, number_cities, pos, optimal_tour, dist_matrix=None):
     """
     this function is used to check the distribution of the outputs in the training dataset
 
@@ -87,7 +98,8 @@ def distribution_fun(settings, number_cities, pos, optimal_tour):
     # creation empty data collector
     counts_CL = np.zeros(8)
 
-    dist_matrix = distance_mat(pos)
+    if dist_matrix is None:
+        dist_matrix = distance_mat(pos)
     pos -= np.mean(pos, axis=0)
 
     # preprocessing for candidates
@@ -104,5 +116,3 @@ def distribution_fun(settings, number_cities, pos, optimal_tour):
             counts_CL[position] += output_handler.create_output(city, city2)
 
     return counts_CL
-
-

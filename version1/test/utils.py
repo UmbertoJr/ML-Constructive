@@ -202,11 +202,14 @@ class Tester_on_eval:
         self.dir_ent = dir_ent
         self.log_fun = log_str_fun
         self.df_data = {"train TPR": [], "train FPR": [], "train TNR": [], "train FNR": [],
-                        "train Acc": [], "train bal Acc": [], "train PLR": [], "train bal PLR": [],
+                        "train Acc": [], "train bal Acc": [], "train PLR": [],
+                        "train bal PLR": [], "train AR": [],
                         "eval TPR": [], "eval FPR": [], "eval TNR": [], "eval FNR": [],
-                        "eval Acc": [], "eval bal Acc": [], "eval PLR": [], "eval bal PLR": [],
+                        "eval Acc": [], "eval bal Acc": [], "eval PLR": [],
+                        "eval bal PLR": [], 'eval AR': [],
                         "test TPR": [], "test FPR": [], "test TNR": [], "test FNR": [],
-                        "test Acc": [], "test bal Acc": [], "test PLR": [], "test bal PLR": [],
+                        "test Acc": [], "test bal Acc": [], "test PLR": [],
+                        "test bal PLR": [], "test AR": []
                         }
         self.iter_list = []
         self.best_bal_PLR = 0.
@@ -214,7 +217,7 @@ class Tester_on_eval:
         self.device = 'cpu'
         self.net = resnet_for_the_tsp(self.settings)
 
-    def test(self, tpr, fnr, fpr, tnr, acc, bal_acc, plr, bal_plr, iteration_train):
+    def test(self, tpr, fnr, fpr, tnr, acc, bal_acc, plr, bal_plr, ar, iteration_train):
 
         self.net.load_state_dict(torch.load(self.dir_ent.folder_train + f'checkpoint.pth',
                                             map_location='cpu'))
@@ -240,10 +243,10 @@ class Tester_on_eval:
 
                     TP, FP, TN, FN = compute_metrics(predictions.detach(), y_online.detach())
 
-                    TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mht.update_metrics(TP, FP, TN, FN)
+                    TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR = mht.update_metrics(TP, FP, TN, FN)
                     # if iter > 500:
                     #     break
-            return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR
+            return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR
 
         def check_test():
             generator2 = EvalGenerator(self.settings)
@@ -264,11 +267,11 @@ class Tester_on_eval:
                     TP, FP, TN, FN = compute_metrics(predictions.detach(), y.detach())
 
                     TPR_test, FNR_test, FPR_test, TNR_test, \
-                    ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test = mht.update_metrics(TP, FP, TN, FN)
-            return TPR_test, FNR_test, FPR_test, TNR_test, ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test
+                    ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test, AR_test = mht.update_metrics(TP, FP, TN, FN)
+            return TPR_test, FNR_test, FPR_test, TNR_test, ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test, AR_test
 
-        TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = check_eval()
-        TPR_test, FNR_test, FPR_test, TNR_test, ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test = check_test()
+        TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR = check_eval()
+        TPR_test, FNR_test, FPR_test, TNR_test, ACC_test, BAL_ACC_test, PLR_test, BAL_PLR_test, AR_test = check_test()
 
         self.df_data["train TPR"].append(tpr)
         self.df_data["train FNR"].append(fnr)
@@ -278,6 +281,7 @@ class Tester_on_eval:
         self.df_data["train bal Acc"].append(bal_acc)
         self.df_data["train PLR"].append(plr)
         self.df_data["train bal PLR"].append(bal_plr)
+        self.df_data["train AR"].append(ar)
 
         self.df_data["eval TPR"].append(TPR)
         self.df_data["eval FNR"].append(FNR)
@@ -287,6 +291,7 @@ class Tester_on_eval:
         self.df_data["eval bal Acc"].append(BAL_ACC)
         self.df_data["eval PLR"].append(PLR)
         self.df_data["eval bal PLR"].append(BAL_PLR)
+        self.df_data["eval AR"].append(AR)
 
         self.df_data["test TPR"].append(TPR_test)
         self.df_data["test FNR"].append(FNR_test)
@@ -296,15 +301,17 @@ class Tester_on_eval:
         self.df_data["test bal Acc"].append(BAL_ACC_test)
         self.df_data["test PLR"].append(PLR_test)
         self.df_data["test bal PLR"].append(BAL_PLR_test)
+        self.df_data["test AR"].append(AR_test)
 
         self.iter_list.append(iteration_train)
         print()
-        print(f"eval results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}, delta : {TPR - FPR}")
+        print(f"eval results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}, AR : {AR}")
         print(f"eval results -->   TPR : {TPR_test},  FPR : {FPR_test}, "
-              f"Acc : {ACC_test},  PLR : {PLR_test}, delta : {TPR_test - FPR_test}")
+              f"Acc : {ACC_test},  PLR : {PLR_test}, delta : {AR_test}")
         print("\n\n\n")
-        return TPR - FPR
+        # return TPR - FPR
         # return - FPR
+        return AR
 
     def save_csv(self, name):
         self.df = pd.DataFrame(data=self.df_data, index=self.iter_list)
@@ -364,4 +371,5 @@ class Metrics_Handler:
         PLR = TPR / (1 + FPR)
         # PLR = self.TP / (self.TP + self.FN + 3 * self.FP)
         BAL_PLR = self.TP / (self.FP + 1)
-        return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR
+        AR = (self.TP / self.CP) - 2.5 * (self.FP / (self.TP + self.FP))
+        return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR

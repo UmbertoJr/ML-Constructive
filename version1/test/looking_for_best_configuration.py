@@ -51,7 +51,7 @@ def train_the_best_configuration(settings):
     iteration = 0
     best_list = []
     best_delta = 0
-    average_delta = deque([0.5 for _ in range(100)])
+    average_delta = deque([0. for _ in range(100)])
     for epoch in range(10):
         generator = DatasetHandler(settings)
         data_logger = tqdm(DataLoader(generator, batch_size=settings.bs, drop_last=True))
@@ -61,7 +61,7 @@ def train_the_best_configuration(settings):
             x = x.to(device)
             y = y.to(device)
 
-            if iteration <= 10000:
+            if iteration <= 2000:
                 model.train()
                 optimizer.zero_grad()
                 predictions1 = model(x)
@@ -79,8 +79,10 @@ def train_the_best_configuration(settings):
                 TP, FP, TN, FN = compute_metrics(actions.detach(), y.detach(), rl_bool=True)
 
                 mh_off = Metrics_Handler()
-                TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_off.update_metrics(TP, FP, TN, FN)
-                new_plr = TPR + TNR - FPR - FNR
+                TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR = mh_off.update_metrics(TP, FP, TN, FN)
+                # new_plr = TPR + TNR - FPR - FNR
+                # new_plr = (TP - FP) / (TP + FN)
+                new_plr = AR
                 advantage = new_plr - np.average(average_delta)
                 average_delta.append(new_plr)
                 average_delta.popleft()
@@ -114,9 +116,11 @@ def train_the_best_configuration(settings):
                 TP, FP, TN, FN = compute_metrics(actions.detach(), y_online.detach(), rl_bool=True)
                 # TP, FP, TN, FN = compute_metrics(predictions2.detach(), y_online.detach())
                 mh_online = Metrics_Handler()
-                TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR = mh_online.update_metrics(TP, FP, TN, FN)
+                TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR = mh_online.update_metrics(TP, FP, TN, FN)
 
-                new_plr = TPR + TNR - FPR - FNR
+                # new_plr = TPR + TNR - FPR - FNR
+                # new_plr = (TP - FP) / (TP + FN)
+                new_plr = AR
                 advantage = new_plr - np.average(average_delta)
                 average_delta.append(new_plr)
                 average_delta.popleft()
@@ -138,7 +142,7 @@ def train_the_best_configuration(settings):
                     torch.save(model.state_dict(),
                                dir_ent.folder_train + f'best_diff.pth')
 
-                val = tester.test(TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, iteration)
+                val = tester.test(TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR, iteration)
                 if val > best_delta:
                     torch.save(model.state_dict(),
                                dir_ent.folder_train + f'diff_{val}.pth')
