@@ -63,7 +63,7 @@ class PreSelection(EdgeInsertion):
                     keys.append((node, h))
 
         for in_cl in range(len_neig):
-            return_list.extend([k for k, v in sorted(LP_v[in_cl].items(), key=lambda item: -item[1])])
+            return_list.extend([k for k, v in sorted(LP_v[in_cl].items(), key=lambda item: item[1], reverse=False)],)
         return return_list
 
     def create_neigs(self):
@@ -185,7 +185,7 @@ class PreSelection(EdgeInsertion):
                 if node_i != node_j and (node_i, node_j) not in LD_v.keys() and (node_j, node_i) not in LD_v.keys():
                     LD_v[(node_i, node_j)] = self.dist_matrix[node_i, hub] + self.dist_matrix[hub, node_j] \
                                              - self.dist_matrix[node_i, node_j]
-        return [k for k, v in sorted(LD_v.items(), key=lambda item: - item[1])]
+        return [k for k, v in sorted(LD_v.items(), key=lambda item: item[1], reverse=True)]
 
     def firstPhase(self):
         # plotter = possible_plots(self.pos, self.prob_to_check)
