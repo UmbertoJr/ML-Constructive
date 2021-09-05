@@ -51,7 +51,7 @@ def create_LP(num_cit, neighborhood, dist_matrix):
                 keys.append((node, h))
 
     for in_cl in range(len_neig):
-        return_list.extend([k for k, v in sorted(LP_v[in_cl].items(), key=lambda item: item[1])])
+        return_list.extend([k for k, v in sorted(LP_v[in_cl].items(), key=lambda item: -item[1])])
 
     return return_list
 

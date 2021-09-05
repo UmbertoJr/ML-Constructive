@@ -39,13 +39,13 @@ operations = {
 if __name__ == '__main__':
     settings = Settings()
     # settings.operation = 'stats CL'
-    settings.operation = 'stats constructors'
+    # settings.operation = 'stats constructors'
     # settings.operation = 'test net'
     # settings.operation = 'test images'
     # settings.operation = 'train'
     # settings.operation = 'show results train'
     # settings.operation = "get the best network parameters after first train"
     # # settings.operation = "test reconstruction"
-    # settings.operation = 'test on TSPLIB'
+    settings.operation = 'test on TSPLIB'
     print_sett(settings)
     operations[settings.operation](settings)

@@ -305,13 +305,14 @@ class Tester_on_eval:
 
         self.iter_list.append(iteration_train)
         print()
-        print(f"eval results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}, AR : {AR}")
-        print(f"eval results -->   TPR : {TPR_test},  FPR : {FPR_test}, "
-              f"Acc : {ACC_test},  PLR : {PLR_test}, delta : {AR_test}")
+        print(f"eval results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}, AR : {AR}, DELTA: {TPR - FPR}")
+        print(f"test"
+              f" results -->   TPR : {TPR_test},  FPR : {FPR_test}, "
+              f"Acc : {ACC_test},  PLR : {PLR_test}, AR : {AR_test}, DELTA: {TPR - FPR}")
         print("\n\n\n")
-        # return TPR - FPR
+        return TPR - FPR
         # return - FPR
-        return AR
+        # return AR
 
     def save_csv(self, name):
         self.df = pd.DataFrame(data=self.df_data, index=self.iter_list)
@@ -371,5 +372,5 @@ class Metrics_Handler:
         PLR = TPR / (1 + FPR)
         # PLR = self.TP / (self.TP + self.FN + 3 * self.FP)
         BAL_PLR = self.TP / (self.FP + 1)
-        AR = (self.TP / self.CP) - 2.5 * (self.FP / (self.TP + self.FP))
-        return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR
+        PREC = self.TP / (self.FP + self.TP)
+        return TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, PREC

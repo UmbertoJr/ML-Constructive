@@ -169,8 +169,8 @@ class Sampler:
 def plot_histogram(data, case):
     df = pd.DataFrame(data)
     ax = sbn.barplot(x='Position in the CL', y=case, hue='Method', data=df, order=['1', '2', '3', '4', '5', '>5'])
-    with_hue(ax, df)
-    change_width(ax, 0.35)
+    # with_hue(ax, df, 3, 6)
+    change_width(ax, 0.25)
     plt.savefig(f'./data/images/{case}Methods.png')
     plt.show()
 
@@ -192,8 +192,11 @@ def with_hue(plot, feature, number_of_categories, hue_categories):
     patch = [p for p in plot.patches]
     for i in range(number_of_categories):
         total = feature.value_counts().values[i]
+        # print(total)
         for j in range(hue_categories):
+            # print(i, j, number_of_categories, len(a), j * number_of_categories + 1)
             percentage = '{:.1f}%'.format(100 * a[(j * number_of_categories + i)] * 2)
+            # print(percentage)
             x = patch[(j * number_of_categories + i)].get_x() + patch[
                 (j * number_of_categories + i)].get_width() / 2 - 0.3
             y = patch[(j * number_of_categories + i)].get_y() + patch[

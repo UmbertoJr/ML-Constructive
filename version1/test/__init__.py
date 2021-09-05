@@ -6,7 +6,7 @@ from test.utils import OutcomeAdmin
 from InOut.tools import DirManager, create_folder
 from test.local_search import LocalSearch
 from test.contructive_heuristics import Constructive
-from instances_generator.test import SampleCreator
+from InOut.tools import SampleCreator, plot_histogram
 from test.tsplib_reader import Read_TSP_Files
 
 to_plot = False
@@ -39,7 +39,7 @@ def create_list_to_save(solvers, admin):
 
 def test_metrics_on_TSPLIB(settings):
     # constructive_algs = ['MF', 'FI', 'CW', 'F', 'S', 'Y', 'AE',  'BE', 'ML-C', 'ML-SC']
-    constructive_algs = ['F', 'ML-SC']
+    constructive_algs = ['F', 'ML-C']
     # constructive_algs = ['MF', 'FI', 'CW']
     data_p = {'Method': [], 'Position in the CL': [], 'True Positive Rate': []}
     data_n = {'Method': [], 'Position in the CL': [], 'False Positive Rate': []}
@@ -61,7 +61,8 @@ def test_metrics_on_TSPLIB(settings):
                 sol_no_pre, time_to_solve, solver = greedy_heuristic.solve(prob=[0.01, 0.01])
                 admin.save(sol_no_pre, method=constructive, time=time_to_solve)
 
-                # print(constructive, admin.gaps[constructive])
+                print(constructive, admin.gaps[constructive], admin.name)
+                print("\n\n")
                 # sc.save_from_constructor(solver.P, solver.N, solver.TP, solver.TN, solver.cases)
                 data_p, data_n = sc.save_new_data(data_p, data_n, admin.sols[constructive], constructive)
 
@@ -142,3 +143,6 @@ def stats_on_constructives(settings):
     print(df_negative[df_negative['False Positive Rate'] == 0].groupby(['Method', 'Position in the CL']).count())
     print(df_negative[df_negative['False Positive Rate'] == 1].groupby(['Method', 'Position in the CL']).count())
     print(df_negative.groupby(['Method', 'Position in the CL']).count())
+
+    plot_histogram(data_n, case='False Positive Rate')
+    plot_histogram(data_p, case='True Positive Rate')

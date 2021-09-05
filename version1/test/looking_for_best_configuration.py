@@ -61,7 +61,7 @@ def train_the_best_configuration(settings):
             x = x.to(device)
             y = y.to(device)
 
-            if iteration <= 2000:
+            if iteration <= 10000:
                 model.train()
                 optimizer.zero_grad()
                 predictions1 = model(x)
@@ -82,7 +82,7 @@ def train_the_best_configuration(settings):
                 TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR = mh_off.update_metrics(TP, FP, TN, FN)
                 # new_plr = TPR + TNR - FPR - FNR
                 # new_plr = (TP - FP) / (TP + FN)
-                new_plr = AR
+                new_plr = TPR - FPR
                 advantage = new_plr - np.average(average_delta)
                 average_delta.append(new_plr)
                 average_delta.popleft()
@@ -120,7 +120,7 @@ def train_the_best_configuration(settings):
 
                 # new_plr = TPR + TNR - FPR - FNR
                 # new_plr = (TP - FP) / (TP + FN)
-                new_plr = AR
+                new_plr = TPR - FPR
                 advantage = new_plr - np.average(average_delta)
                 average_delta.append(new_plr)
                 average_delta.popleft()
