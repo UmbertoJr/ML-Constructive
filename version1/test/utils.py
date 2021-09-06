@@ -308,7 +308,7 @@ class Tester_on_eval:
         print(f"eval results -->   TPR : {TPR},  FPR : {FPR},  Acc : {ACC},  PLR : {PLR}, AR : {AR}, DELTA: {TPR - FPR}")
         print(f"test"
               f" results -->   TPR : {TPR_test},  FPR : {FPR_test}, "
-              f"Acc : {ACC_test},  PLR : {PLR_test}, AR : {AR_test}, DELTA: {TPR - FPR}")
+              f"Acc : {ACC_test},  PLR : {PLR_test}, AR : {AR_test}, DELTA: {TPR_test - FPR_test}")
         print("\n\n\n")
         return TPR - FPR
         # return - FPR
