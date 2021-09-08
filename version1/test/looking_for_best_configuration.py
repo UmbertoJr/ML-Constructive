@@ -61,76 +61,76 @@ def train_the_best_configuration(settings):
             x = x.to(device)
             y = y.to(device)
 
-            if iteration <= 10000:
-                model.train()
-                optimizer.zero_grad()
-                predictions1 = model(x)
-                loss1 = criterion(predictions1, y)
-                optimizer.zero_grad()
-                loss1.backward(retain_graph=True)
-                # loss1.backward()
-                optimizer.step()
+            # if iteration <= 10000:
+            model.train()
+            optimizer.zero_grad()
+            predictions1 = model(x)
+            loss1 = criterion(predictions1, y)
+            optimizer.zero_grad()
+            loss1.backward(retain_graph=True)
+            # loss1.backward()
+            optimizer.step()
 
-                predictions3 = model(x)
-                dist = Categorical(probs=predictions3)
-                actions = dist.sample()
-                log_probs = dist.log_prob(actions)
+            predictions3 = model(x)
+            dist = Categorical(probs=predictions3)
+            actions = dist.sample()
+            log_probs = dist.log_prob(actions)
 
-                TP, FP, TN, FN = compute_metrics(actions.detach(), y.detach(), rl_bool=True)
+            TP, FP, TN, FN = compute_metrics(actions.detach(), y.detach(), rl_bool=True)
 
-                mh_off = Metrics_Handler()
-                TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR = mh_off.update_metrics(TP, FP, TN, FN)
-                # new_plr = TPR + TNR - FPR - FNR
-                # new_plr = (TP - FP) / (TP + FN)
-                new_plr = TPR - FPR
-                advantage = new_plr - np.average(average_delta)
-                average_delta.append(new_plr)
-                average_delta.popleft()
+            mh_off = Metrics_Handler()
+            TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR = mh_off.update_metrics(TP, FP, TN, FN)
+            new_plr = TPR + TNR - FPR - FNR
+            # new_plr = (TP - FP) / (TP + FN)
+            # new_plr = TPR - FPR
+            advantage = new_plr - np.average(average_delta)
+            average_delta.append(new_plr)
+            average_delta.popleft()
 
-                advantage_t = torch.FloatTensor([advantage]).to(device).detach()
-                actor_loss = (log_probs * advantage_t).mean()
+            advantage_t = torch.FloatTensor([advantage]).to(device).detach()
+            actor_loss = (log_probs * advantage_t).mean()
 
-                optimizer2.zero_grad()
-                actor_loss.backward()
-                optimizer2.step()
-            else:
-                # if iteration <= 2200:
-                #     best_delta = 0
-                torch.save(model.state_dict(),
-                           dir_ent.folder_train + 'checkpoint.pth')
-                # torch.save(model.state_dict(),
-                #            dir_ent.folder_train + 'checkpoint.pth')
-                online_data_generator = OnlineDataSetHandler(settings, model, mode='train')
-                x_online, y_online = online_data_generator.get_data()
-                predictions2 = model(x_online)
-                loss2 = criterion(predictions2, y_online)
-                optimizer.zero_grad()
-                loss2.backward(retain_graph=True)
-                optimizer.step()
-                #
-                predictions3 = model(x_online)
-                dist = Categorical(probs=predictions3)
-                actions = dist.sample()
-                log_probs = dist.log_prob(actions)
-
-                TP, FP, TN, FN = compute_metrics(actions.detach(), y_online.detach(), rl_bool=True)
-                # TP, FP, TN, FN = compute_metrics(predictions2.detach(), y_online.detach())
-                mh_online = Metrics_Handler()
-                TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR = mh_online.update_metrics(TP, FP, TN, FN)
-
-                # new_plr = TPR + TNR - FPR - FNR
-                # new_plr = (TP - FP) / (TP + FN)
-                new_plr = TPR - FPR
-                advantage = new_plr - np.average(average_delta)
-                average_delta.append(new_plr)
-                average_delta.popleft()
-
-                advantage_t = torch.FloatTensor([advantage]).to(device).detach()
-                actor_loss = (log_probs * advantage_t).mean()
-
-                optimizer2.zero_grad()
-                actor_loss.backward()
-                optimizer2.step()
+            optimizer2.zero_grad()
+            actor_loss.backward()
+            optimizer2.step()
+            # else:
+            #     # if iteration <= 2200:
+            #     #     best_delta = 0
+            #     torch.save(model.state_dict(),
+            #                dir_ent.folder_train + 'checkpoint.pth')
+            #     # torch.save(model.state_dict(),
+            #     #            dir_ent.folder_train + 'checkpoint.pth')
+            #     online_data_generator = OnlineDataSetHandler(settings, model, mode='train')
+            #     x_online, y_online = online_data_generator.get_data()
+            #     predictions2 = model(x_online)
+            #     loss2 = criterion(predictions2, y_online)
+            #     optimizer.zero_grad()
+            #     loss2.backward(retain_graph=True)
+            #     optimizer.step()
+            #     #
+            #     predictions3 = model(x_online)
+            #     dist = Categorical(probs=predictions3)
+            #     actions = dist.sample()
+            #     log_probs = dist.log_prob(actions)
+            #
+            #     TP, FP, TN, FN = compute_metrics(actions.detach(), y_online.detach(), rl_bool=True)
+            #     # TP, FP, TN, FN = compute_metrics(predictions2.detach(), y_online.detach())
+            #     mh_online = Metrics_Handler()
+            #     TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR, AR = mh_online.update_metrics(TP, FP, TN, FN)
+            #
+            #     # new_plr = TPR + TNR - FPR - FNR
+            #     # new_plr = (TP - FP) / (TP + FN)
+            #     new_plr = TPR - FPR
+            #     advantage = new_plr - np.average(average_delta)
+            #     average_delta.append(new_plr)
+            #     average_delta.popleft()
+            #
+            #     advantage_t = torch.FloatTensor([advantage]).to(device).detach()
+            #     actor_loss = (log_probs * advantage_t).mean()
+            #
+            #     optimizer2.zero_grad()
+            #     actor_loss.backward()
+            #     optimizer2.step()
 
             log_str = log_str_fun(advantage, TPR, FNR, FPR, TNR, ACC, BAL_ACC, PLR, BAL_PLR)
             data_logger.set_postfix_str(log_str)
