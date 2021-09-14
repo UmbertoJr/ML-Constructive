@@ -155,10 +155,16 @@ Association for Computing Machinery (in press).
 Cite
 ----
 ```buildoutcfg
-@article{mele2021mlconstructive,
-    title   = {A New Constructive Heuristic driven by Machine Learning for the Traveling Salesman Problem},
-    author  = {Mele, Umberto Junior and Gambardella, Luca Maria and Montemanni, Roberto},
-    journal = {Submitted for publication},
-    year    = {2021}
+@Article{a14090267,
+AUTHOR = {Mele, Umberto Junior and Gambardella, Luca Maria and Montemanni, Roberto},
+TITLE = {A New Constructive Heuristic Driven by Machine Learning for the Traveling Salesman Problem},
+JOURNAL = {Algorithms},
+VOLUME = {14},
+YEAR = {2021},
+NUMBER = {9},
+ARTICLE-NUMBER = {267},
+URL = {https://www.mdpi.com/1999-4893/14/9/267},
+ISSN = {1999-4893},
+DOI = {10.3390/a14090267}
 }
 ```
