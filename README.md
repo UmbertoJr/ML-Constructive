@@ -132,24 +132,26 @@ References
 <a id="1">[1]</a>
 Mele, U. J., Gambardella, L. M., and Montemanni, R. (2021).
 A New Constructive Heuristic driven by Machine Learning for the traveling Salesman Problem.
-(submitted for publication).
+*Algorithms* **2021**, 14, 267. DOI:https://doi.org/10.3390/a14090267
 
 <a id="1">[2]</a>
 Vitali, T., Mele, U. J., Gambardella, L. M., and Montemanni, R. (2021).
 Machine Learning Constructives and Local Searches for the Travelling Salesman Problem. 
-ArXiv preprint ArXiv:2108.00938
+ArXiv preprint. ArXiv:https://arxiv.org/abs/2108.00938
 
 <a id="1">[3]</a>
 Mele, U. J., Gambardella, L. M., and Montemanni, R. (2021).
 Machine learning approaches for the traveling salesman problem: A survey.
-In Proceedings of the 8th International Conference on Industrial Engineering and Applications (ICIEA 2021).
-Association for Computing Machinery (in press).
+ In 2021 The 8th International Conference on Industrial Engineering and Applications(Europe)
+(ICIEA 2021-Europe). Association for Computing Machinery, 
+New York, NY, USA, 182–186. DOI:https://doi.org/10.1145/3463858.3463869
 
 <a id="1">[4]</a>
 Mele, U. J., Chou, X., Gambardella, L. M., and Montemanni, R. (2021).
 Reinforcement Learning and additional rewards for the traveling salesman problem.
-In Proceedings of the 8th International Conference on Industrial Engineering and Applications (ICIEA 2021).
-Association for Computing Machinery (in press).
+ In 2021 The 8th International Conference on Industrial Engineering and Applications(Europe) 
+(ICIEA 2021-Europe). Association for Computing Machinery, 
+New York, NY, USA, 198–204. DOI:https://doi.org/10.1145/3463858.3463885
 
 
 Cite
