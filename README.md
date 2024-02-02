@@ -88,7 +88,8 @@ Replace /path/to/local/data with the path to the ML-Constructive/version1.1/data
 ## Replicating Data for Experiments
 ### Dataset Creation
 
-To create the dataset, which takes about 3 days. The following command generates folders and files containing the data for training and evaluation. Test instances are already located in the "version1/data/test" folder of the images that in the case of 
+To create the dataset, which takes about 3 days. The following command generates folders and files containing the data for training and evaluation. Test instances are already located in the "version1/data/test" folder.
+
 ```shell
 python cli.py --operation create_instances
 ```
