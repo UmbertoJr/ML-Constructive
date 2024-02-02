@@ -76,7 +76,7 @@ To pull the `umbertojr/ml-constructive:latest` image from Docker Hub, run the fo
 docker pull umbertojr/ml-constructive:latest
 ```
 
-Further information on the image can be found in Docker Hub (https://hub.docker.com/r/umbertojr/ml-constructive)[https://hub.docker.com/r/umbertojr/ml-constructive]
+Further information on the image can be found in repository on the [Docker Hub](https://hub.docker.com/r/umbertojr/ml-constructive)
 
 ### Running the Image as Bash
 
