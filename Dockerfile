@@ -10,14 +10,13 @@ COPY version1.1/ /app/
 
 # Install OpenGL library
 RUN apt-get update
-RUN apt-get install libgl1-mesa-glx
-
+RUN apt-get update && apt-get install -y libgl1-mesa-glx
 
 # update pip install
 RUN pip install --upgrade pip
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r /app/version1/requirements.txt
+RUN pip install --no-cache-dir -r /app/version1.1/requirements.txt
 
 # Install PyConcorde to generate optimal TSP tours
 RUN pip install 'pyconcorde @ git+https://github.com/jvkersch/pyconcorde'
