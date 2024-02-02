@@ -2,17 +2,28 @@
 FROM python:3.8
 
 # Set the working directory in the container
-WORKDIR ./version1
+WORKDIR /app
 
-# Copy the current directory contents into the container at /usr/src/app
-COPY . .
+# Copy the current directory contents into the container at /app
+COPY . /app
+
+
+# Install OpenGL library
+RUN apt-get update
+RUN apt-get install libgl1-mesa-glx
+
+
+# update pip install
+RUN pip install --upgrade pip
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --no-cache-dir -r ./version1/requirements.txt
+RUN pip install --no-cache-dir -r /app/version1/requirements.txt
 
 # Install PyConcorde to generate optimal TSP tours
 RUN pip install 'pyconcorde @ git+https://github.com/jvkersch/pyconcorde'
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
+# Install OpenCV
+RUN pip install opencv-python
 
+# Install torchsummary
+RUN pip install torchsummary
