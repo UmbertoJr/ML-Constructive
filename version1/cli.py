@@ -1,5 +1,5 @@
 import argparse
-from version1 import Settings, operations, print_sett
+from settings_experiment import Settings, operations, print_sett
 
 
 def run_op(s):

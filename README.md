@@ -59,6 +59,20 @@ with the reward function of reinforcement learning setups for the TSP [4].
 
 
 
+## Running with Docker
+
+To run this application with Docker, follow these steps:
+
+1. Install Docker on your machine.
+2. Pull the Docker image from Docker Hub:
+    ```
+    docker pull your-dockerhub-username/your-image-name
+    ```
+3. Run the Docker container:
+    ```
+    docker run -p 4000:80 your-dockerhub-username/your-image-name
+    ```
+
 
 
 Dependecies
@@ -170,3 +184,25 @@ ISSN = {1999-4893},
 DOI = {10.3390/a14090267}
 }
 ```
+
+## Running the Docker Image with PyTorch CUDA Support
+
+This project's Docker image is built with PyTorch support for CUDA-enabled GPUs. This setup is designed to leverage NVIDIA GPUs for accelerated computing, significantly enhancing performance for deep learning tasks. However, compatibility and functionality are maintained for systems without NVIDIA GPUs as well.
+
+### For Users with NVIDIA GPUs
+
+- **Prerequisites**: Make sure you have the latest NVIDIA drivers and Docker's NVIDIA Container Toolkit (nvidia-docker) installed.
+- **Running the Container**: Utilize the `--gpus all` flag with `docker run` to enable GPU support within the container.
+
+### For Users Without NVIDIA GPUs
+
+- The Docker image will **automatically fall back** to using the CPU if no NVIDIA GPU is detected.
+- PyTorch is designed to seamlessly operate on CPUs when GPU resources are not available. No additional configuration is needed.
+- Performance on CPUs will be adequate for many tasks but expect slower execution compared to GPU environments.
+
+### General Information
+
+- This approach ensures that the Docker image is versatile, capable of running on a wide range of systems—from those equipped with the latest NVIDIA GPUs to those relying solely on CPU power.
+- The presence of CUDA support in the PyTorch package does not prevent the application from functioning on CPU-only systems; it simply means that CUDA acceleration will not be utilized in such cases.
+
+Our goal is to make our project accessible to a broad audience, ensuring functionality across various hardware setups. Should you encounter any issues or have questions about running the Docker container, please feel free to open an issue in this GitHub repository.
