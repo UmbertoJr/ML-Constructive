@@ -185,8 +185,4 @@ Our goal is to make our project accessible to a broad audience, ensuring functio
 
 ## Acknowledgements
 
-This project makes use of the [PyConcorde](https://github.com/jvkersch/pyconcorde) library, an efficient Python wrapper for the Concorde TSP solver, which is the fastest available exact solver for the Traveling Salesman Problem (TSP). PyConcorde is developed by [Joris Vankerschaver](https://github.com/jvkersch) and others, and it provides an interface to the Concorde TSP solver that allows for solving TSP instances directly from Python.
-
-The use of PyConcorde in this project has significantly enhanced its capability to solve complex TSP instances quickly and reliably. We express our sincere gratitude to the developers of PyConcorde for their efforts in creating and maintaining this valuable tool.
-
-For more details on PyConcorde, or to contribute to its development, please visit the [PyConcorde GitHub repository](https://github.com/jvkersch/pyconcorde).
+This project makes use of the [PyConcorde](https://github.com/jvkersch/pyconcorde) library, an efficient Python wrapper for the Concorde TSP solver, which is the fastest available exact solver for the Traveling Salesman Problem (TSP). We express our sincere gratitude to the developers of PyConcorde for their efforts in creating and maintaining this valuable tool.
