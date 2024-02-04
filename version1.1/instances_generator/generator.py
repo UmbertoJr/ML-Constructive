@@ -1,25 +1,45 @@
 import os
+import h5py  
 import tempfile
 import numpy as np
 from concorde.tsp import TSPSolver
 from scipy.spatial.distance import pdist
 
-
 def save(data, seed, hf, num_inst_file):
     all_dimensions, all_pos, all_tours = data
+
+    # Define variable-length datatype for positions and tours
+    float_vlen_type = h5py.special_dtype(vlen=np.dtype('float64'))
+    int_vlen_type = h5py.special_dtype(vlen=np.dtype('int'))
 
     for it in range(num_inst_file):
         seed_to_add = seed + it
         group = hf.create_group(f'seed_{seed_to_add}')
-        group.create_dataset(f"num_cities", shape=(1,),
-                             dtype=np.int, chunks=True, data=np.array(all_dimensions[it]))
 
-        group.create_dataset(f"pos", shape=all_pos[it].shape,
-                             dtype=np.float, chunks=True, data=all_pos[it])
+        # Number of cities does not vary within an instance but across instances, so it can be saved as is
+        group.create_dataset("num_cities", shape=(1,), dtype=np.int, chunks=True, data=np.array(all_dimensions[it]))
 
-        group.create_dataset(f"optimal_tour", shape=all_tours[it].shape,
-                             dtype=np.int, chunks=True,
-                             data=all_tours[it])
+        # For positions and tours, use the variable-length datatype
+        group.create_dataset("pos", shape=(len(all_pos[it]),), dtype=float_vlen_type, data=all_pos[it])
+
+        group.create_dataset("optimal_tour", shape=(len(all_tours[it]),), dtype=int_vlen_type, data=all_tours[it])
+
+
+# def save(data, seed, hf, num_inst_file):
+#     all_dimensions, all_pos, all_tours = data
+
+#     for it in range(num_inst_file):
+#         seed_to_add = seed + it
+#         group = hf.create_group(f'seed_{seed_to_add}')
+#         group.create_dataset(f"num_cities", shape=(1,),
+#                              dtype=np.int, chunks=True, data=np.array(all_dimensions[it]))
+
+#         group.create_dataset(f"pos", shape=all_pos[it].shape,
+#                              dtype=np.float, chunks=True, data=all_pos[it])
+
+#         group.create_dataset(f"optimal_tour", shape=all_tours[it].shape,
+#                              dtype=np.int, chunks=True,
+#                              data=all_tours[it])
 
 
 class GenerateInstances:
