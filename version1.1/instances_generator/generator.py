@@ -7,7 +7,7 @@ from scipy.spatial.distance import pdist
 
 def save(data, seed, hf, num_inst_file):
     all_dimensions, all_pos, all_tours = data
-
+    
     for it in range(num_inst_file):
         seed_to_add = seed + it
         group = hf.create_group(f'seed_{seed_to_add}')
@@ -15,36 +15,15 @@ def save(data, seed, hf, num_inst_file):
         # Save the number of cities directly, since it's scalar and consistent within an instance
         group.create_dataset("num_cities", data=np.array([all_dimensions[it]]))
 
-        # For positions and tours, since they are lists of arrays with varying lengths,
-        # we need to handle them appropriately
         # Save positions
         pos_dtype = h5py.special_dtype(vlen=float)  # Define variable-length float type
         pos_dataset = group.create_dataset("pos", (len(all_pos[it]),), dtype=pos_dtype)
         for idx, pos in enumerate(all_pos[it]):
             pos_dataset[idx] = pos  # Assigning each position array to the dataset
-
-        # Save optimal tours
-        tour_dtype = h5py.special_dtype(vlen=int)  # Define variable-length int type
-        tour_dataset = group.create_dataset("optimal_tour", (len(all_tours[it]),), dtype=tour_dtype)
-        for idx, tour in enumerate(all_tours[it]):
-            tour_dataset[idx] = tour  # Assigning each tour array to the dataset
-
-
-# def save(data, seed, hf, num_inst_file):
-#     all_dimensions, all_pos, all_tours = data
-
-#     for it in range(num_inst_file):
-#         seed_to_add = seed + it
-#         group = hf.create_group(f'seed_{seed_to_add}')
-#         group.create_dataset(f"num_cities", shape=(1,),
-#                              dtype=np.int, chunks=True, data=np.array(all_dimensions[it]))
-
-#         group.create_dataset(f"pos", shape=all_pos[it].shape,
-#                              dtype=np.float, chunks=True, data=all_pos[it])
-
-#         group.create_dataset(f"optimal_tour", shape=all_tours[it].shape,
-#                              dtype=np.int, chunks=True,
-#                              data=all_tours[it])
+       
+        # Save optimal tours directly as an array
+        tour_dataset = group.create_dataset("optimal_tour", data=all_tours[it])
+       
 
 
 class GenerateInstances:
@@ -64,19 +43,22 @@ class GenerateInstances:
 
     def create_data(self, j):
         num_cities, pos = self.create_instance(j)
-        directory = os.getcwd()
-        with tempfile.TemporaryDirectory() as path:
-            os.chdir(path)
-            solver = TSPSolver.from_data(
-                pos[:, 0] * 100000,
-                pos[:, 1] * 100000,
-                norm="EUC_2D"
-            )
-            solution = solver.solve()
-
-        os.chdir(directory)
+        original_directory = os.getcwd()  # Store the original directory
+        try:
+            # Use a try-finally block to ensure the directory is always reverted
+            with tempfile.TemporaryDirectory() as temp_dir:
+                os.chdir(temp_dir)  # Change to the temporary directory
+                solver = TSPSolver.from_data(
+                    pos[:, 0] * 100000,
+                    pos[:, 1] * 100000,
+                    norm="EUC_2D"
+                )
+                solution = solver.solve(verbose=0)  # Suppress Concorde's output
+        finally:
+            os.chdir(original_directory)  # Revert to the original directory regardless of success or failure
 
         return num_cities, pos, solution.tour
+
 
     def create_instance(self, j):
         np.random.seed(j)

@@ -1,3 +1,4 @@
+import os
 import h5py
 from tqdm import tqdm
 from time import time
@@ -11,22 +12,30 @@ def create_instances(settings):
 
     number_instances_per_file = settings.num_instances_x_file
     number_files = settings.total_number_instances // number_instances_per_file
-    print(f"total number of files {number_files}")
-
+    
     iterator_on_files = tqdm(range(number_files))
 
     gt = GenerateInstances(settings)
     for file in iterator_on_files:
         seed = file * number_instances_per_file + 10000
 
+        # Define the file path
+        file_path = f"{dir_ent.folder_instances}{seed}_file.h5"
+
+        # Check if the file already exists
+        if os.path.exists(file_path):
+            print(f"File {file_path} already exists. Skipping or handling accordingly.")
+            continue  # Skip this iteration and hence, don't overwrite the file
+
         # to save created data
         data = gt.create_instances(number_instances_per_file, seed)
 
-        hf = h5py.File(f"{dir_ent.folder_instances}{seed}_file.h5", "w")
-        save(data, seed, hf, number_instances_per_file)
-        hf.close()
+        # Open the file in write mode, which will create the file
+        with h5py.File(file_path, "w") as hf:
+            save(data, seed, hf, number_instances_per_file)
 
     print(f"the total time to create the instances is : {time() - start} secs")
+
 
 
 def create_statistical_study_data(settings):
