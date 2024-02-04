@@ -14,7 +14,7 @@ class Settings:
     ray_dot: int = 1
     thickness_edge: int = 1
     total_number_instances: int = 40960
-    num_instances_x_file: int = 20 #1280
+    num_instances_x_file: int = 1280
     cases_in_L_P: int = 2
     last_file: int = 30
     bs: int = 256
