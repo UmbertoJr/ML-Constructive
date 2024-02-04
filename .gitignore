@@ -7,3 +7,4 @@
 __pycache__/
 .idea/
 *.h5
+./version1.1/data/test/TSPLIB/*.tsp
