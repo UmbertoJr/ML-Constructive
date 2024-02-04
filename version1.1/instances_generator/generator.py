@@ -8,21 +8,26 @@ from scipy.spatial.distance import pdist
 def save(data, seed, hf, num_inst_file):
     all_dimensions, all_pos, all_tours = data
 
-    # Define variable-length datatype for positions and tours
-    float_vlen_type = h5py.special_dtype(vlen=np.dtype('float64'))
-    int_vlen_type = h5py.special_dtype(vlen=np.dtype('int'))
-
     for it in range(num_inst_file):
         seed_to_add = seed + it
         group = hf.create_group(f'seed_{seed_to_add}')
+        
+        # Save the number of cities directly, since it's scalar and consistent within an instance
+        group.create_dataset("num_cities", data=np.array([all_dimensions[it]]))
 
-        # Number of cities does not vary within an instance but across instances, so it can be saved as is
-        group.create_dataset("num_cities", shape=(1,), dtype=np.int, chunks=True, data=np.array(all_dimensions[it]))
+        # For positions and tours, since they are lists of arrays with varying lengths,
+        # we need to handle them appropriately
+        # Save positions
+        pos_dtype = h5py.special_dtype(vlen=float)  # Define variable-length float type
+        pos_dataset = group.create_dataset("pos", (len(all_pos[it]),), dtype=pos_dtype)
+        for idx, pos in enumerate(all_pos[it]):
+            pos_dataset[idx] = pos  # Assigning each position array to the dataset
 
-        # For positions and tours, use the variable-length datatype
-        group.create_dataset("pos", shape=(len(all_pos[it]),), dtype=float_vlen_type, data=all_pos[it])
-
-        group.create_dataset("optimal_tour", shape=(len(all_tours[it]),), dtype=int_vlen_type, data=all_tours[it])
+        # Save optimal tours
+        tour_dtype = h5py.special_dtype(vlen=int)  # Define variable-length int type
+        tour_dataset = group.create_dataset("optimal_tour", (len(all_tours[it]),), dtype=tour_dtype)
+        for idx, tour in enumerate(all_tours[it]):
+            tour_dataset[idx] = tour  # Assigning each tour array to the dataset
 
 
 # def save(data, seed, hf, num_inst_file):
@@ -91,19 +96,18 @@ class GenerateInstances:
 
     @staticmethod
     def organize_data(data):
-        all_dimensions, all_pos, all_tours = ([] for _ in range(3))
-        for i in range(len(data)):
-            all_dimensions.append(data[i][0])
-            all_pos.append(data[i][1])
-            all_tours.append(data[i][2])
+        all_dimensions = []
+        all_pos = []
+        all_tours = []
+        for num_cities, pos, tour in data:
+            all_dimensions.append(num_cities)
+            all_pos.append(pos) 
+            all_tours.append(tour) 
 
-        all_dimensions, \
-        all_pos, \
-        all_tours = map(np.array, (all_dimensions,
-                                   all_pos,
-                                   all_tours))
+        all_dimensions = np.array(all_dimensions)  
 
         return all_dimensions, all_pos, all_tours
+
 
     @staticmethod
     def create_upper_matrix(values, size):

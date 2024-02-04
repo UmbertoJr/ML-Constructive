@@ -6,3 +6,4 @@
 /version1/data/train
 __pycache__/
 .idea/
+*.h5
