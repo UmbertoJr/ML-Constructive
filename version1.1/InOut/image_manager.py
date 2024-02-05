@@ -136,6 +136,9 @@ class DatasetHandler(Dataset):
         pos = self.file[f'//seed_{actual_key}'][f'pos'][...]
         tour = self.file[f'//seed_{actual_key}'][f'optimal_tour'][...]
         number_cities = number_cities[0]
+        pos = np.stack(pos)
+        tour = np.array(tour)
+        
         new_images = self.image_creator.get_num_of_images(number_cities, pos)
         return (number_cities, pos, tour), new_images
 

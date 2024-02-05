@@ -110,7 +110,7 @@ def plot_single_cv(image):
 
 
 def normalize_image(img):
-    img = np.array(img, dtype=np.float)
+    img = np.array(img, dtype=np.float64)
     return img / 255.
 
 

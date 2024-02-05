@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 import pandas as pd
@@ -25,6 +26,10 @@ def show_results(settings):
 
 def train_the_best_configuration(settings):
     dir_ent = DirManager(settings)
+    # check directory if exists, if not create it
+    if not os.path.exists(dir_ent.folder_train):
+        dir_ent.create_folder_for_train(settings.cases_in_L_P)
+
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print(f'device : {device}')
@@ -35,6 +40,7 @@ def train_the_best_configuration(settings):
     model.apply(model.weight_init)
     # model.load_state_dict(torch.load(f'./data/net_weights/CL_{settings.cases_in_L_P}/best_diff.pth',
     #                                  map_location=device))
+
     torch.save(model.state_dict(),
                dir_ent.folder_train + 'checkpoint.pth')
 

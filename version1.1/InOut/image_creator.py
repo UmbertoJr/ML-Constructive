@@ -145,7 +145,7 @@ class ImageTrainDataCreator:
 
     def create_empty_collector(self, num_images, settings):
         input_images = np.zeros((num_images, settings.num_pixels, settings.num_pixels, 3), np.uint8)
-        output_ = np.zeros((num_images), np.int)
+        output_ = np.zeros((num_images), np.int32)
         return input_images, output_
 
     def tools_init(self, pos, optimal_tour):
