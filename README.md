@@ -58,6 +58,39 @@ and an unusual example on how to combine combinatorial optimization concepts
 with the reward function of reinforcement learning setups for the TSP [4]. 
 
 
+## Running with Conda
+
+To run this application using Conda, follow these steps:
+
+1. **Install Miniconda or Anaconda**: If not already installed, download and install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/products/distribution) on your machine.
+
+2. **Create and Activate a New Conda Environment**:
+    ```shell
+    conda create --name ml_constructive python=3.8
+    conda activate ml_constructive
+    ```
+
+3. **Install Required Libraries**:
+    - Install PyTorch with CUDA support for GPU acceleration. Ensure the CUDA toolkit version matches your system's NVIDIA drivers.
+        ```shell
+        conda install pytorch torchvision torchaudio cudatoolkit=12.3 -c pytorch
+        ```
+    - The `libgl1-mesa-glx` package is a library that provides support for OpenGL, which is required by some computer vision libraries like OpenCV, especially when dealing with GUI windows or off-screen rendering. While Conda manages most package dependencies within its environment, system-level dependencies like OpenGL libraries might need to be installed separately on your host system. For Conda environments, OpenCV can be installed without explicitly installing `libgl1-mesa-glx` as Conda packages handle these dependencies internally:
+        ```shell
+        conda install -c conda-forge opencv
+        ```
+    - For packages that require a specific installation method or are not available in Conda repositories, use pip within the Conda environment. An example is `pyconcorde`, which is installed via pip:
+        ```shell
+        pip install 'pyconcorde @ git+https://github.com/jvkersch/pyconcorde'
+        ```
+    - To install other dependencies from `requirements.txt` and ensure compatibility within the Conda environment, it's recommended to first attempt installation with Conda, falling back to pip if necessary:
+        ```shell
+        while read requirement; do conda install --yes $requirement || pip install $requirement; done < requirements.txt
+        ```
+
+4. **CUDA Toolkit**: The CUDA Toolkit provides a development environment for creating high performance GPU-accelerated applications. It includes GPU-accelerated libraries, debugging and optimization tools, a C/C++ compiler, and a runtime library to deploy your application. If you're using Conda to manage PyTorch and other GPU-accelerated libraries, Conda will install the appropriate version of `cudatoolkit` for you. However, to leverage GPU capabilities fully, ensure that your system's NVIDIA drivers are compatible with the installed CUDA version. For detailed instructions on installing CUDA and matching it with your NVIDIA drivers, visit the [NVIDIA CUDA Toolkit documentation](https://developer.nvidia.com/cuda-downloads).
+
+After setting up your Conda environment and installing the necessary libraries, you can proceed with the project-specific commands such as dataset creation, model training, and evaluation within the activated Conda environment.
 
 ## Running with Docker
 
