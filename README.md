@@ -62,15 +62,18 @@ with the reward function of reinforcement learning setups for the TSP [4].
 
 To run this application using Conda, follow these steps:
 
-1. **Install Miniconda or Anaconda**: If not already installed, download and install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/products/distribution) on your machine.
+1. **CUDA Toolkit**: The CUDA Toolkit provides a development environment for creating high performance GPU-accelerated applications. It includes GPU-accelerated libraries, debugging and optimization tools, a C/C++ compiler, and a runtime library to deploy your application. If you're using Conda to manage PyTorch and other GPU-accelerated libraries, Conda will install the appropriate version of `cudatoolkit` for you. However, to leverage GPU capabilities fully, ensure that your system's NVIDIA drivers are compatible with the installed CUDA version. For detailed instructions on installing CUDA and matching it with your NVIDIA drivers, visit the [NVIDIA CUDA Toolkit documentation](https://developer.nvidia.com/cuda-downloads).
 
-2. **Create and Activate a New Conda Environment**:
+
+2. **Install Miniconda or Anaconda**: If not already installed, download and install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/products/distribution) on your machine.
+
+3. **Create and Activate a New Conda Environment**:
     ```shell
     conda create --name ml_constructive python=3.8
     conda activate ml_constructive
     ```
 
-3. **Install Required Libraries**:
+4. **Install Required Libraries**:
     - Install PyTorch with CUDA support for GPU acceleration. Ensure the CUDA toolkit version matches your system's NVIDIA drivers.
         ```shell
         conda install pytorch torchvision torchaudio cudatoolkit=12.3 -c pytorch
@@ -87,8 +90,6 @@ To run this application using Conda, follow these steps:
         ```shell
         while read requirement; do conda install --yes $requirement || pip install $requirement; done < requirements.txt
         ```
-
-4. **CUDA Toolkit**: The CUDA Toolkit provides a development environment for creating high performance GPU-accelerated applications. It includes GPU-accelerated libraries, debugging and optimization tools, a C/C++ compiler, and a runtime library to deploy your application. If you're using Conda to manage PyTorch and other GPU-accelerated libraries, Conda will install the appropriate version of `cudatoolkit` for you. However, to leverage GPU capabilities fully, ensure that your system's NVIDIA drivers are compatible with the installed CUDA version. For detailed instructions on installing CUDA and matching it with your NVIDIA drivers, visit the [NVIDIA CUDA Toolkit documentation](https://developer.nvidia.com/cuda-downloads).
 
 After setting up your Conda environment and installing the necessary libraries, you can proceed with the project-specific commands such as dataset creation, model training, and evaluation within the activated Conda environment.
 
