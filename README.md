@@ -133,9 +133,9 @@ After pulling your chosen image, you can run it to start an interactive session,
     Replace /path/to/local/version1.1/ with the actual path to your ML-Constructive/version1.1/ directory on the host machine. This setup ensures that any data written inside the container to /app/data is saved on your host machine, maintaining the project's structure and facilitating easy access to results and datasets.
 
 - **GPU-Enabled Environment:**
-    If utilizing GPUs, launch the container with GPU support by adding the --gpus all flag:
+    If utilizing GPUs, launch the container with GPU support by adding the `--gpus all` flag:
     ```shell
-    docker run -it -v /path/to/local/version1.1/:/app/ umbertojr/ml-constructive:latest bash
+    docker run -it --gpus all -v /path/to/local/version1.1/:/app/ umbertojr/ml-constructive:latest bash
     ```
     This command enables the Docker container to access all available GPUs on the host machine, significantly enhancing performance for GPU-accelerated tasks.
 
