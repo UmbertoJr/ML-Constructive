@@ -1,5 +1,5 @@
 # Start with an NVIDIA CUDA image that includes the necessary CUDA drivers and libraries
-FROM nvidia/cuda:12.3.1-base-ubuntu22.04
+FROM nvcr.io/nvidia/pytorch:23.12-py3
 # Note: The base image already includes CUDA, so there's no need to install CUDA or NVIDIA drivers manually
 
 # Use a label to maintain metadata
@@ -11,7 +11,6 @@ WORKDIR /app
 # Copy the version1.1 directory contents into the container at /app
 COPY version1.1/ /app/
 
-
 # Install git
 RUN apt-get update && apt-get install -y git
 
@@ -19,16 +18,15 @@ RUN apt-get update && apt-get install -y git
 RUN apt-get update && apt-get install -y \
     libgl1-mesa-glx \
     python3-pip \
-    python3-dev \
+    python3.8 \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update
-RUN apt-get install libglib2.0-0
-
-
-# Optionally, if you've added libraries in non-standard locations, set LD_LIBRARY_PATH
-ENV LD_LIBRARY_PATH="/your/custom/library/path:${LD_LIBRARY_PATH}"
-
+RUN apt-get update -y && apt-get install -y \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libglib2.0-0 \
+    libgl1-mesa-glx
 
 # Update pip and install the requirements
 RUN pip install --upgrade pip \
