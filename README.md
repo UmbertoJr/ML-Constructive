@@ -135,7 +135,7 @@ After pulling your chosen image, you can run it to start an interactive session,
 - **GPU-Enabled Environment:**
     If utilizing GPUs, launch the container with GPU support by adding the `--gpus all` flag:
     ```shell
-    docker run -it --gpus all -v /path/to/local/version1.1/:/app/ umbertojr/ml-constructive:latest bash
+    docker run -it --gpus all -v /path/to/local/version1.1/:/app/ umbertojr/ml-constructive:gpu bash
     ```
     This command enables the Docker container to access all available GPUs on the host machine, significantly enhancing performance for GPU-accelerated tasks.
 
