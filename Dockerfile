@@ -16,17 +16,11 @@ RUN apt-get update && apt-get install -y git
 
 # Install system packages
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
     python3-pip \
-    python3.8 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update -y && apt-get install -y \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    libglib2.0-0 \
-    libgl1-mesa-glx
+    libglib2.0-0 
 
 # Update pip and install the requirements
 RUN pip install --upgrade pip \
@@ -34,3 +28,8 @@ RUN pip install --upgrade pip \
     && pip install 'pyconcorde @ git+https://github.com/jvkersch/pyconcorde' \
     && pip install opencv-python \
     && pip install torchsummary
+
+# 1. download the autofix tool
+RUN pip install opencv-fixer==0.2.5
+# 2. execute
+RUN python -c "from opencv_fixer import AutoFix; AutoFix()"
