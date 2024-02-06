@@ -22,8 +22,12 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN sudo apt-get update
-RUN sudo apt-get install libglib2.0-0
+RUN apt-get update
+RUN apt-get install libglib2.0-0
+
+
+# Optionally, if you've added libraries in non-standard locations, set LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="/your/custom/library/path:${LD_LIBRARY_PATH}"
 
 
 # Update pip and install the requirements
