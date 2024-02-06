@@ -10,4 +10,4 @@ __pycache__/
 ./version1.1/data/test/TSPLIB/*.tsp
 *.tsp
 *.npy
-*.pth
+/version1/data/net_weights/CL_2/*.pth
