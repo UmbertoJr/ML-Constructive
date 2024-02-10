@@ -98,7 +98,7 @@ class PreSelection(EdgeInsertion):
                   f"TPR0 : {self.TP[0] / self.P[0]}, FPR0 : {(self.N[0] - self.TN[0]) / self.N[0]} , "
                   f"ACC0 : {(self.TP[0] + self.TN[0])/(self.P[0] + self.N[0])} \n"
                   f"precision0 : {[self.TP[0] / (self.TP[0] + self.N[0] - self.TN[0]) if self.TP[0] + self.N[0] - self.TN[0] != 0 else 0 ][0]} \n "
-                  f"TPR1 : {self.TP[1] / self.P[1]}, FPR1 : {(self.N[1] - self.TN[1]) / self.N[1]}, "
+                  f"TPR1 : {self.TP[1] / self.P[1]}, FPR1 : {(self.N[1] - self.TN[1]) / (self.N[1] + 1e-16)}, "
                   f"ACC1 : {(self.TP[1] + self.TN[1])/(self.P[1] + self.N[1])} \n"
                   f"precision0 : {[self.TP[1] / (self.TP[1] + self.N[1] - self.TN[1]) if self.TP[1] + self.N[1] - self.TN[1] != 0 else 0 ][0]} \n ")
         # solution = self.middlePhase(self.firstPhaseSolution)
