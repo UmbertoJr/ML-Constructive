@@ -68,7 +68,7 @@ class Read_TSP_Files:
         # store data set information
         # print(name_tsp)
         self.name = self.lines[0].split(' ')[1]
-        self.nPoints = np.int(self.lines[3].split(' ')[1])
+        self.nPoints = np.int32(self.lines[3].split(' ')[1])
         self.distance = self.lines[4].split(' ')[1]
         self.distance_formula = self.distance_formula_dict[self.distance]
 
